@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }} · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>{{ titulo }}</h1>
+  <form method="post" novalidate>
+
+    <label for="nombre">Nombre</label>
+    <input id="nombre" name="nombre" value="{{ valores.get('nombre', '') }}">
+    {% if errores.nombre %}<div class="error">{{ errores.nombre }}</div>{% endif %}
+
+    <label for="descripcion">Descripción</label>
+    <textarea id="descripcion" name="descripcion" rows="3">{{ valores.get('descripcion', '') }}</textarea>
+    {% if errores.descripcion %}<div class="error">{{ errores.descripcion }}</div>{% endif %}
+
+    <label for="costo_mensual">Costo mensual ($)</label>
+    <input id="costo_mensual" name="costo_mensual" value="{{ valores.get('costo_mensual', '') }}" inputmode="decimal">
+    <div class="nota">Sin separador de miles. Ej.: 12500 o 12500,50</div>
+    {% if errores.costo_mensual %}<div class="error">{{ errores.costo_mensual }}</div>{% endif %}
+
+    <label for="sla_horas">Tiempo de SLA (horas)</label>
+    <input id="sla_horas" name="sla_horas" value="{{ valores.get('sla_horas', '') }}" inputmode="numeric">
+    {% if errores.sla_horas %}<div class="error">{{ errores.sla_horas }}</div>{% endif %}
+
+    <button type="submit">{{ boton }}</button>
+    <a class="cancelar" href="{{ url_for('planes.catalogo') }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

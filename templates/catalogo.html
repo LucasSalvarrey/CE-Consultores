@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block titulo %}Planes · CE Consultores{% endblock %}
+{% block contenido %}
+<h1>Planes</h1>
+
+{% if admin_actual %}
+<p><a class="nuevo_plan" href="{{ url_for('planes.plan_nuevo') }}">Nuevo plan</a></p>
+{% endif %}
+
+{% for plan in planes %}
+<div class="tarjeta plan">
+  <h2>{{ plan.nombre }}</h2>
+  <p>{{ plan.descripcion or "Descripción a definir." }}</p>
+  <dl>
+    <dt>Costo mensual</dt>
+    <dd>{% if plan.costo_mensual is not none %}$ {{ plan.costo_mensual|pesos }}{% else %}A definir{% endif %}</dd>
+    <dt>Tiempo de SLA</dt>
+    <dd>{% if plan.sla_horas %}{{ plan.sla_horas }} h{% else %}A definir{% endif %}</dd>
+  </dl>
+  {% if admin_actual %}
+  <p><a class="editar_plan" href="{{ url_for('planes.plan_editar', plan_id=plan.id) }}">Editar</a></p>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

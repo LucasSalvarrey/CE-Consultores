@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titulo %}Registro · CE Consultores{% endblock %}
+{% block contenido %}
+
+<div class="tarjeta">
+  <h1>Crear mi cuenta</h1>
+
+  {% if rechazo %}
+  <div class="rechazo" role="alert">
+    <strong>No pudimos validar tu identidad.</strong><br>
+    {{ rechazo }} Revisá tus datos e intentá de nuevo. Tu cuenta no fue creada.
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+
+    <label for="nombre">Nombre completo</label>
+    <input id="nombre" name="nombre" value="{{ valores.get('nombre', '') }}" autocomplete="name">
+    {% if errores.nombre %}<div class="error">{{ errores.nombre }}</div>{% endif %}
+
+    <label for="dni">DNI</label>
+    <input id="dni" name="dni" value="{{ valores.get('dni', '') }}" inputmode="numeric">
+    {% if errores.dni %}<div class="error">{{ errores.dni }}</div>{% endif %}
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ valores.get('email', '') }}" autocomplete="email">
+    {% if errores.email %}<div class="error">{{ errores.email }}</div>{% endif %}
+
+    <label for="telefono">Teléfono</label>
+    <input id="telefono" name="telefono" type="tel" value="{{ valores.get('telefono', '') }}" autocomplete="tel">
+    {% if errores.telefono %}<div class="error">{{ errores.telefono }}</div>{% endif %}
+
+    <label for="plan_id">Plan inicial</label>
+    <select id="plan_id" name="plan_id">
+      <option value="">Elegí un plan…</option>
+      {% for plan in planes %}
+        <option value="{{ plan.id }}" {% if valores.get('plan_id') == plan.id|string %}selected{% endif %}>{{ plan.nombre }}</option>
+      {% endfor %}
+    </select>
+    {% if errores.plan_id %}<div class="error">{{ errores.plan_id }}</div>{% endif %}
+
+    <label for="password">Contraseña</label>
+    <input id="password" name="password" type="password" autocomplete="new-password">
+    {% if errores.password %}<div class="error">{{ errores.password }}</div>{% endif %}
+
+    <label for="password2">Repetir contraseña</label>
+    <input id="password2" name="password2" type="password" autocomplete="new-password">
+    {% if errores.password2 %}<div class="error">{{ errores.password2 }}</div>{% endif %}
+    <button type="submit">Registrarme</button>
+    <a class="ingresar" href="{{ url_for('auth.login') }}">Iniciar sesión</a>
+  </form>
+</div>
+{% endblock %}

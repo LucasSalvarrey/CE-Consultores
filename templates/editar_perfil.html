@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Editar mis datos · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>Editar mis datos</h1>
+
+  <dl>
+    <dt>Nombre</dt><dd>{{ cliente.nombre }}</dd>
+    <dt>DNI</dt><dd>{{ cliente.dni }}</dd>
+  </dl>
+  <p class="nota">El nombre y el DNI no se pueden modificar porque fueron validados al registrarte.</p>
+
+  <form method="post" novalidate>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ valores.get('email', '') }}" autocomplete="email">
+    {% if errores.email %}<div class="error">{{ errores.email }}</div>{% endif %}
+
+    <label for="telefono">Teléfono</label>
+    <input id="telefono" name="telefono" type="tel" value="{{ valores.get('telefono', '') }}" autocomplete="tel">
+    {% if errores.telefono %}<div class="error">{{ errores.telefono }}</div>{% endif %}
+
+    <button type="submit">Guardar cambios</button>
+    <a class="cancelar" href="{{ url_for('clientes.mi_cuenta') }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

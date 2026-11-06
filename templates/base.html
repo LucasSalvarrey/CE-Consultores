@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}CE Consultores{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <span>CE Consultores</span>
+    <nav>
+      {% if cliente_actual %}
+        <span class="saludo">Hola, {{ cliente_actual.nombre }}</span>
+        <a class="planes" href="{{ url_for('planes.catalogo') }}">Planes</a>
+        <a class="mi-cuenta" href="{{ url_for('clientes.mi_cuenta') }}">Mi cuenta</a>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          <button type="submit" class="salir">Salir</button>
+        </form>
+      {% elif admin_actual %}
+        <span class="saludo">Hola, {{ admin_actual.nombre }} (administrador)</span>
+        <a class="planes" href="{{ url_for('planes.catalogo') }}">Planes</a>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          <button type="submit" class="salir">Salir</button>
+        </form>  
+        
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% for mensaje in get_flashed_messages() %}
+      <div class="ok" role="status">{{ mensaje }}</div>
+    {% endfor %}
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>
