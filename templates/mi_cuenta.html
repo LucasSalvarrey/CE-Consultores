@@ -9,6 +9,9 @@
     <dt>Email</dt><dd>{{ cliente.email }}</dd>
     <dt>Teléfono</dt><dd>{{ cliente.telefono }}</dd>
     <dt>Plan</dt><dd>{{ plan.nombre }}</dd>
+    <dt>Descripción del plan</dt><dd>{{ plan.descripcion or "A definir" }}</dd>
+    <dt>Costo mensual</dt><dd>{% if plan.costo_mensual is not none %}$ {{ plan.costo_mensual|pesos }}{% else %}A definir{% endif %}</dd>
+    <dt>Tiempo de SLA</dt><dd>{% if plan.sla_horas %}{{ plan.sla_horas }} h{% else %}A definir{% endif %}</dd>
   </dl>
   <p><a class="editar-perfil" href="{{ url_for('clientes.editar_perfil') }}">Editar mis datos</a></p>
 </div>

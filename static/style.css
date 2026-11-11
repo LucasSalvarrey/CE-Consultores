@@ -26,3 +26,22 @@ dl { margin: 16px 0 0; } dt { font-weight: 600; margin-top: 8px; } dd { margin: 
 .editar_plan:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
 .cancelar { margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
 .cancelar:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
+textarea { width: 100%; box-sizing: border-box; padding: 9px 10px; margin-top: 4px; border: 1px solid #8c897d; border-radius: 6px; font: inherit; }
+.solicitudes { margin-left: 24px; color: #fff; text-decoration: none; font-weight: 600; }
+.solicitudes:hover {color:#1f2a37; background-color:#fff; border-radius:6px; padding:10px}
+.nueva_solicitud { margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
+.nueva_solicitud:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
+.solicitud { margin-bottom: 16px; }
+.solicitud h2 { font-size: 18px; margin: 0 0 8px; }
+.detalle { white-space: pre-line; }
+.estado { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+.estado-pendiente { background: #fdf1d6; color: #7a5a00; }
+.estado-realizado { background: #e3f3e6; color: #1e6b34; }
+.estado-anulada { background: #ececec; color: #555; }
+.estado-rechazada { background: #f8e1e4; color: #8a2c3a; }
+.acciones { display: flex; gap: 12px; align-items: flex-start; }
+.rechazar { background: #8a2c3a; }
+.rechazar:hover { background: #fff; color: #8a2c3a; }
+.motivo { color: #8a2c3a; font-size: 14px; }
+.avisos { margin: 0; padding-left: 18px; }
+.avisos .fecha { color: #5b594f; font-size: 12px; margin-left: 6px; }

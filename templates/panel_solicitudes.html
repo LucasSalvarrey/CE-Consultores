@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}Solicitudes · CE Consultores{% endblock %}
+{% block contenido %}
+<h1>Solicitudes de los clientes</h1>
+
+{% for s in solicitudes %}
+<div class="tarjeta solicitud">
+  <h2>{{ s.cliente_nombre }}<span class="estado estado-{{ s.estado }}">{{ s.estado|estado_solicitud }}</span></h2>
+  <dl>
+    <dt>Plan solicitado</dt>
+    <dd>{{ s.plan_nombre }}</dd>
+    <dt>Detalle</dt>
+    <dd class="detalle">{{ s.detalle }}</dd>
+    <dt>Creada</dt>
+    <dd>{{ s.creado }}</dd>
+    {% if s.motivo %}
+    <dt>Motivo</dt>
+    <dd>{{ s.motivo }}</dd>
+    {% endif %}
+  </dl>
+  {% if s.estado == "pendiente" %}
+  <div class="acciones">
+    <form method="post" action="{{ url_for('solicitudes.realizar', solicitud_id=s.id) }}">
+      <button type="submit" class="realizar">Marcar como realizada</button>
+    </form>
+    <form method="post" action="{{ url_for('solicitudes.rechazar', solicitud_id=s.id) }}">
+      <button type="submit" class="rechazar">Rechazar</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<p>Todavía no hay solicitudes.</p>
+{% endfor %}
+{% endblock %}

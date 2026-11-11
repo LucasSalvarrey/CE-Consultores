@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Mis solicitudes · CE Consultores{% endblock %}
+{% block contenido %}
+<h1>Mis solicitudes</h1>
+<p><a class="nueva_solicitud" href="{{ url_for('solicitudes.nueva_solicitud') }}">Nueva solicitud</a></p>
+
+{% if avisos %}
+<div class="tarjeta solicitud">
+  <h2>Avisos</h2>
+  <ul class="avisos">
+    {% for a in avisos %}
+    <li>{{ a.mensaje }} <span class="fecha">{{ a.fecha }}</span></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% for s in solicitudes %}
+<div class="tarjeta solicitud">
+  <h2>{{ s.plan_nombre }}<span class="estado estado-{{ s.estado }}">{{ s.estado|estado_solicitud }}</span></h2>
+  <p class="detalle">{{ s.detalle }}</p>
+  {% if s.motivo %}<p class="motivo">{{ s.motivo }}</p>{% endif %}
+  <dl>
+    <dt>Creada</dt>
+    <dd>{{ s.creado }}</dd>
+  </dl>
+  {% if s.estado == "pendiente" %}
+  <form method="post" action="{{ url_for('solicitudes.anular', solicitud_id=s.id) }}">
+    <button type="submit" class="anular">Anular solicitud</button>
+  </form>
+  {% endif %}
+</div>
+{% else %}
+<p>Todavía no hiciste ninguna solicitud.</p>
+{% endfor %}
+{% endblock %}

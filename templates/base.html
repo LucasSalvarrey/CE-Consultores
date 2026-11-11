@@ -13,6 +13,7 @@
       {% if cliente_actual %}
         <span class="saludo">Hola, {{ cliente_actual.nombre }}</span>
         <a class="planes" href="{{ url_for('planes.catalogo') }}">Planes</a>
+        <a class="solicitudes" href="{{ url_for('solicitudes.mis_solicitudes') }}">Solicitudes</a>
         <a class="mi-cuenta" href="{{ url_for('clientes.mi_cuenta') }}">Mi cuenta</a>
         <form method="post" action="{{ url_for('auth.logout') }}">
           <button type="submit" class="salir">Salir</button>
@@ -20,6 +21,7 @@
       {% elif admin_actual %}
         <span class="saludo">Hola, {{ admin_actual.nombre }} (administrador)</span>
         <a class="planes" href="{{ url_for('planes.catalogo') }}">Planes</a>
+        <a class="solicitudes" href="{{ url_for('solicitudes.panel') }}">Solicitudes</a>
         <form method="post" action="{{ url_for('auth.logout') }}">
           <button type="submit" class="salir">Salir</button>
         </form>  

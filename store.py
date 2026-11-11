@@ -7,6 +7,8 @@ class Store:
     def __init__(self, admin_email, admin_password):
         self._ids = {}
         self.clientes = {}
+        self.solicitudes = {}
+        self.facturas = {}
 
         self.administradores = {
             1: {

@@ -3,6 +3,8 @@ import os
 from flask import Flask, redirect, url_for
 
 from datos import cargar_datos
+from notisys import NotiSysSimulado
+from pagonet import PagoNetSimulado
 from store import Store
 from vericheck import VeriCheckSimulado
 
@@ -18,15 +20,19 @@ def create_app(test_config=None):
 
     app.extensions["store"] = Store(app.config["ADMIN_EMAIL"], app.config["ADMIN_PASSWORD"])
     app.extensions["vericheck"] = VeriCheckSimulado()
+    app.extensions["pagonet"] = PagoNetSimulado()
+    app.extensions["notisys"] = NotiSysSimulado()
     if app.config["CARGAR_DATOS"]:
         cargar_datos(app.extensions["store"])
         
     from auth import bp as auth_bp
     from clientes import bp as clientes_bp
     from planes import bp as planes_bp
+    from solicitudes import bp as solicitudes_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(clientes_bp)
     app.register_blueprint(planes_bp)
+    app.register_blueprint(solicitudes_bp)
 
     @app.get("/")
     def inicio():
