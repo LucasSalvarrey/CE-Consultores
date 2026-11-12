@@ -1,47 +1,309 @@
-body { font-family: system-ui, sans-serif; background: #f6f5f1; color: #1b1a17; margin: 0; }
-header { background: #1f2a37; color: #fff; padding: 14px 24px; font-weight: 700; }
-main { max-width: 520px; margin: 32px auto; padding: 0 16px; }
-.tarjeta { background: #fff; border: 1px solid #d9d6cc; border-radius: 8px; padding: 24px; }
-h1 { font-size: 22px; margin: 0 0 16px; }
-label { display: block; font-weight: 600; margin-top: 14px; }
-input, select { width: 100%; box-sizing: border-box; padding: 9px 10px; margin-top: 4px; border: 1px solid #8c897d; border-radius: 6px; font: inherit; }
-.opcional { font-weight: 400; color: #5b594f; }
-.error { color: hsl(349, 76%, 36%); font-size: 14px; margin-top: 4px; }
-button{ margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.ingresar { margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; margin-left:25px}
-button:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
+/* ==========================================================================
+   CONFIGURACIÓN GENERAL
+   ========================================================================== */
+body {
+  font-family: system-ui, sans-serif;
+  background: #f6f5f1;
+  color: #1b1a17;
+  margin: 0;
+  padding: 0;
+}
 
-.ingresar:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; margin-left:25px}
-.ok { background: #e3f3e6; border: 1px solid #8bc79a; padding: 12px; border-radius: 6px; }
-dl { margin: 16px 0 0; } dt { font-weight: 600; margin-top: 8px; } dd { margin: 0; }
-.registrarme, .mi-cuenta,.planes { margin-left: 24px; color: #fff; text-decoration: none; font-weight: 600; }
-.registrarme:hover {color:#1f2a37; background-color:#fff; border-radius:6px; padding:10px}
-.mi-cuenta:hover {color:#1f2a37; background-color:#fff; border-radius:6px; padding:10px}
-.planes:hover {color:#1f2a37; background-color:#fff; border-radius:6px; padding:10px}
-.registrarme2 { text-decoration: none; color:#1f2a37;}
-.editar-perfil { text-decoration: none; color:#1f2a37;}
-.nuevo_plan { margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.nuevo_plan:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.editar_plan { margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.editar_plan:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.cancelar { margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.cancelar:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-textarea { width: 100%; box-sizing: border-box; padding: 9px 10px; margin-top: 4px; border: 1px solid #8c897d; border-radius: 6px; font: inherit; }
-.solicitudes { margin-left: 24px; color: #fff; text-decoration: none; font-weight: 600; }
-.solicitudes:hover {color:#1f2a37; background-color:#fff; border-radius:6px; padding:10px}
-.nueva_solicitud { margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #1d4f91; color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.nueva_solicitud:hover {margin-top: 30px; padding: 10px 18px; border: 0; border-radius: 6px; background: #fff; color: #1d4f91; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;}
-.solicitud { margin-bottom: 16px; }
-.solicitud h2 { font-size: 18px; margin: 0 0 8px; }
-.detalle { white-space: pre-line; }
-.estado { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
-.estado-pendiente { background: #fdf1d6; color: #7a5a00; }
-.estado-realizado { background: #e3f3e6; color: #1e6b34; }
-.estado-anulada { background: #ececec; color: #555; }
-.estado-rechazada { background: #f8e1e4; color: #8a2c3a; }
-.acciones { display: flex; gap: 12px; align-items: flex-start; }
-.rechazar { background: #8a2c3a; }
-.rechazar:hover { background: #fff; color: #8a2c3a; }
-.motivo { color: #8a2c3a; font-size: 14px; }
-.avisos { margin: 0; padding-left: 18px; }
-.avisos .fecha { color: #5b594f; font-size: 12px; margin-left: 6px; }
+/* ==========================================================================
+   HEADER Y NAVEGACIÓN (ALINEADO A LA IZQUIERDA, STICKY Y ESTABLE)
+   ========================================================================== */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #1f2a37;
+  color: #fff;
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  justify-content: flex-start;  /* Todo agrupado a la izquierda */
+  align-items: center;
+  gap: 24px;                   /* Separación entre la marca y el menú */
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Marca / Título */
+header > span:first-child {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* Contenedor del Nav a la izquierda */
+header nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Saludo de usuario */
+header .saludo {
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+/* Enlaces con padding constante para evitar saltos en hover */
+.registrarme, .mi-cuenta, .planes, .solicitudes {
+  display: inline-block;
+  padding: 8px 12px;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  margin: 0;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.registrarme:hover, .mi-cuenta:hover, .planes:hover, .solicitudes:hover {
+  background-color: #ffffff;
+  color: #1f2a37;
+  padding: 8px 12px;
+}
+
+/* Formulario y Botón Salir */
+header nav form {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+}
+
+header button.salir {
+  margin: 0;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+header button.salir:hover {
+  margin: 0;
+  padding: 7px 14px;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+/* ==========================================================================
+   ESTRUCTURA PRINCIPAL Y CONTENEDORES
+   ========================================================================== */
+main {
+  max-width: 520px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+.tarjeta {
+  background: #fff;
+  border: 1px solid #d9d6cc;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-top: 14px;
+}
+
+input, select, textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  margin-top: 4px;
+  border: 1px solid #8c897d;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.opcional {
+  font-weight: 400;
+  color: #5b594f;
+}
+
+.error {
+  color: hsl(349, 76%, 36%);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.ok {
+  background: #e3f3e6;
+  border: 1px solid #8bc79a;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+dl {
+  margin: 16px 0 0;
+}
+
+dt {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+dd {
+  margin: 0;
+}
+
+/* ==========================================================================
+   BOTONES GENERALES (DENTRO DEL CONTENIDO)
+   ========================================================================== */
+button {
+  margin-top: 30px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: #1d4f91;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button:hover {
+  background: #fff;
+  color: #1d4f91;
+}
+
+.ingresar {
+  margin-top: 30px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: #1d4f91;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-left: 25px;
+}
+
+.ingresar:hover {
+  background: #fff;
+  color: #1d4f91;
+}
+
+.nuevo_plan, .editar_plan, .cancelar, .nueva_solicitud {
+  margin-top: 30px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: #1d4f91;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.nuevo_plan:hover, .editar_plan:hover, .cancelar:hover, .nueva_solicitud:hover {
+  background: #fff;
+  color: #1d4f91;
+}
+
+.registrarme2, .editar-perfil {
+  text-decoration: none;
+  color: #1f2a37;
+}
+
+/* ==========================================================================
+   SOLICITUDES Y ESTADOS
+   ========================================================================== */
+.solicitud {
+  margin-bottom: 16px;
+}
+
+.solicitud h2 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+
+.detalle {
+  white-space: pre-line;
+}
+
+.estado {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+.estado-pendiente {
+  background: #fdf1d6;
+  color: #7a5a00;
+}
+
+.estado-realizado {
+  background: #e3f3e6;
+  color: #1e6b34;
+}
+
+.estado-anulada {
+  background: #ececec;
+  color: #555;
+}
+
+.estado-rechazada {
+  background: #f8e1e4;
+  color: #8a2c3a;
+}
+
+.acciones {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rechazar {
+  background: #8a2c3a;
+}
+
+.rechazar:hover {
+  background: #fff;
+  color: #8a2c3a;
+}
+
+.motivo {
+  color: #8a2c3a;
+  font-size: 14px;
+}
+
+.avisos {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.avisos .fecha {
+  color: #5b594f;
+  font-size: 12px;
+  margin-left: 6px;
+}
