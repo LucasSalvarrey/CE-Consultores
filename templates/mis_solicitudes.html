@@ -1,36 +1,55 @@
 {% extends "base.html" %}
 {% block titulo %}Mis solicitudes · CE Consultores{% endblock %}
 {% block contenido %}
-<h1>Mis solicitudes</h1>
-<p><a class="nueva_solicitud" href="{{ url_for('solicitudes.nueva_solicitud') }}">Nueva solicitud</a></p>
-
-{% if avisos %}
-<div class="tarjeta solicitud">
-  <h2>Avisos</h2>
-  <ul class="avisos">
-    {% for a in avisos %}
-    <li>{{ a.mensaje }} <span class="fecha">{{ a.fecha }}</span></li>
-    {% endfor %}
-  </ul>
+<div class="pagina-titulo">
+  <div>
+    <h1>Mis solicitudes</h1>
+    <p>Pedí un alta, un cambio o la baja de tu plan y seguí cómo avanza.</p>
+  </div>
+  <div class="acciones"><a class="btn nueva_solicitud" href="{{ url_for('solicitudes.nueva_solicitud') }}">Nueva solicitud</a></div>
 </div>
-{% endif %}
 
+<div class="lista">
 {% for s in solicitudes %}
-<div class="tarjeta solicitud">
-  <h2>{{ s.plan_nombre }}<span class="estado estado-{{ s.estado }}">{{ s.estado|estado_solicitud }}</span></h2>
-  <p class="detalle">{{ s.detalle }}</p>
-  {% if s.motivo %}<p class="motivo">{{ s.motivo }}</p>{% endif %}
-  <dl>
-    <dt>Creada</dt>
-    <dd>{{ s.creado }}</dd>
-  </dl>
-  {% if s.estado == "pendiente" %}
-  <form method="post" action="{{ url_for('solicitudes.anular', solicitud_id=s.id) }}">
-    <button type="submit" class="anular">Anular solicitud</button>
-  </form>
-  {% endif %}
-</div>
+  <article class="item item--{{ s.estado }}">
+    <div class="item__cabecera">
+      <h2 class="item__titulo">{{ s.plan_nombre }}<small>Solicitud #{{ s.id }} · {{ s.tipo|tipo_solicitud }}</small></h2>
+      <div class="item__insignias"><span class="estado estado-{{ s.estado }}">{{ s.estado|estado_solicitud }}</span></div>
+    </div>
+    <p class="detalle">{{ s.detalle }}</p>
+    {% if s.motivo %}<p class="motivo">{{ s.motivo }}</p>{% endif %}
+
+    {% if s.adjunto %}
+    <div class="documento">
+      <span>📎</span>
+      <span class="documento__nombre">{{ s.adjunto.nombre }}</span>
+      <span class="nota">{{ (s.adjunto.tamano / 1024)|round(1) }} KB</span>
+      <span class="estado estado-{{ s.adjunto.estado }}">Documentación {{ s.adjunto.estado|doc_estado|lower }}</span>
+      <a href="{{ url_for('solicitudes.documento', solicitud_id=s.id) }}">Descargar</a>
+    </div>
+    {% endif %}
+
+    <div class="item__meta">
+      <span>Creada: <strong>{{ s.creado|fecha }}</strong></span>
+      {% if s.factura %}
+      <span>Factura #{{ s.factura.id }}: <strong>$ {{ s.factura.monto|pesos }}</strong> <span class="estado estado-{{ s.factura.estado }}">{{ s.factura.estado|estado_factura }}</span></span>
+      {% endif %}
+    </div>
+
+    {% if s.estado == "pendiente" %}
+    <div class="acciones">
+      <form method="post" action="{{ url_for('solicitudes.anular', solicitud_id=s.id) }}">
+        <button type="submit" class="btn-peligro btn-sm anular">Anular solicitud</button>
+      </form>
+    </div>
+    {% endif %}
+  </article>
 {% else %}
-<p>Todavía no hiciste ninguna solicitud.</p>
+  <div class="vacio">
+    <strong>Todavía no hiciste ninguna solicitud.</strong>
+    Cuando pidas un cambio de plan, lo vas a ver acá.
+    <div><a class="btn" href="{{ url_for('solicitudes.nueva_solicitud') }}">Hacer mi primera solicitud</a></div>
+  </div>
 {% endfor %}
+</div>
 {% endblock %}

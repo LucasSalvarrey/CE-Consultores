@@ -99,4 +99,4 @@ def validar_perfil(form, store, cliente_id):
     if error:
         errores["telefono"] = error
 
-    return {"email": email, "telefono": telefono}, errores
+    return {"email": email, "telefono": telefono}, errores

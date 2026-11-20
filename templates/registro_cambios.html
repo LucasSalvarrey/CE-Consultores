@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Registro de cambios · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>Registro de cambios</h1>
+    <p>Quién hizo qué y cuándo: clientes, planes, solicitudes, facturas y reclamos.</p>
+  </div>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px">
+  <form method="get" action="{{ url_for('auditoria.registro_de_cambios') }}" class="formulario-fila">
+    <div>
+      <label for="entidad">Sobre qué</label>
+      <select id="entidad" name="entidad">
+        <option value="">Todo</option>
+        {% for clave, texto in entidades.items() %}
+        <option value="{{ clave }}" {{ 'selected' if entidad == clave }}>{{ texto }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="q">Buscar</label>
+      <input id="q" name="q" value="{{ q }}" placeholder="Persona, acción o detalle…">
+    </div>
+    <div style="align-self:end"><div class="acciones" style="margin:0"><button type="submit">Filtrar</button><a class="btn btn-sec" href="{{ url_for('auditoria.registro_de_cambios') }}">Limpiar</a></div></div>
+  </form>
+</div>
+
+{% if entradas %}
+<div class="tabla-wrap">
+  <table class="tabla">
+    <thead><tr><th>Fecha</th><th>Quién</th><th>Acción</th><th>Sobre</th><th>Detalle</th></tr></thead>
+    <tbody>
+    {% for e in entradas %}
+      <tr>
+        <td class="num">{{ e.fecha|fecha }}</td>
+        <td>{{ e.actor }}</td>
+        <td><strong>{{ e.accion }}</strong></td>
+        <td><span class="entidad entidad-{{ e.entidad }}">{{ entidades.get(e.entidad, e.entidad) }}{% if e.ref %} #{{ e.ref }}{% endif %}</span></td>
+        <td>{{ e.detalle }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if total > maximo %}<p class="nota" style="margin-top:10px">Se muestran los {{ maximo }} cambios más recientes de {{ total }}. Usá los filtros para acotar.</p>{% endif %}
+{% else %}
+<div class="vacio"><strong>No hay cambios registrados{% if entidad or q %} con ese filtro{% endif %}.</strong></div>
+{% endif %}
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}{{ titulo }} · CE Consultores{% endblock %}
 {% block contenido %}
-<div class="tarjeta">
+<div class="tarjeta angosta">
   <h1>{{ titulo }}</h1>
   <form method="post" novalidate>
 
@@ -22,8 +22,10 @@
     <input id="sla_horas" name="sla_horas" value="{{ valores.get('sla_horas', '') }}" inputmode="numeric">
     {% if errores.sla_horas %}<div class="error">{{ errores.sla_horas }}</div>{% endif %}
 
-    <button type="submit">{{ boton }}</button>
-    <a class="cancelar" href="{{ url_for('planes.catalogo') }}">Cancelar</a>
+    <div class="form-acciones">
+      <button type="submit">{{ boton }}</button>
+      <a class="btn btn-sec cancelar" href="{{ url_for('planes.catalogo') }}">Cancelar</a>
+    </div>
   </form>
 </div>
 {% endblock %}

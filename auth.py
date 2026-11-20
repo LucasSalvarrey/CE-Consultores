@@ -58,10 +58,13 @@ def admin_requerido(vista):
     return envoltura
 
 
-def _destino_seguro(destino, por_defecto):
+def destino_seguro(destino, por_defecto):
     if destino and destino.startswith("/") and not destino.startswith("//") and "\\" not in destino:
         return destino
     return por_defecto
+
+
+_destino_seguro = destino_seguro
 
 
 def _buscar_usuario(email):
@@ -85,7 +88,7 @@ def login():
     if cliente_actual() is not None:
         return redirect(url_for("clientes.mi_cuenta"))
     if admin_actual() is not None:
-        return redirect(url_for("planes.catalogo"))
+        return redirect(url_for("inicio.panel"))
     siguiente = request.values.get("next", "")
 
     if request.method == "GET":
@@ -101,7 +104,7 @@ def login():
         session.clear()
         if rol == "administrador":
             session["admin_id"] = usuario["id"]
-            inicio = url_for("planes.catalogo")
+            inicio = url_for("inicio.panel")
         else:
             session["cliente_id"] = usuario["id"]
             inicio = url_for("clientes.mi_cuenta")
@@ -116,4 +119,4 @@ def login():
 @bp.post("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.login"))

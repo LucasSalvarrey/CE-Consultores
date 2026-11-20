@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titulo %}Reclamos · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>Reclamos de los clientes</h1>
+    <p>Respondé, actualizá el estado y atendé primero los escalados.</p>
+  </div>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px">
+  <h2>Simulación del SLA</h2>
+  <p class="nota">El sistema escala solo los reclamos pendientes que superan su SLA. Para verlo sin esperar, avanzá el reloj.
+    {% if horas_simuladas %}<strong>Tiempo simulado hasta ahora: +{{ horas_simuladas }} h.</strong>{% endif %}</p>
+  <form method="post" action="{{ url_for('reclamos.simular_tiempo') }}" class="acciones" style="margin-top:6px">
+    <label for="horas" class="casilla">Avanzar</label>
+    <input id="horas" name="horas" type="number" min="1" max="720" value="24" class="en-linea" style="width:90px">
+    <span class="nota">horas</span>
+    <button type="submit" class="btn-sec btn-sm">Simular paso del tiempo</button>
+  </form>
+</div>
+
+<div class="filtros">
+  <div class="filtros__grupo">
+    <a class="chip {{ 'activo' if not estado }}" href="{{ url_for('reclamos.panel') }}">Todos <small>{{ total }}</small></a>
+    {% for clave, texto in [('escalado', 'Escalados'), ('pendiente', 'Pendientes'), ('resuelto', 'Resueltos'), ('anulado', 'Anulados')] %}
+    <a class="chip {{ 'activo' if estado == clave }}" href="{{ url_for('reclamos.panel', estado=clave) }}">{{ texto }} <small>{{ conteos.get(clave, 0) }}</small></a>
+    {% endfor %}
+  </div>
+</div>
+
+{% if reclamos %}
+<div class="tabla-wrap">
+  <table class="tabla">
+    <thead><tr><th>N.º</th><th>Cliente</th><th>Asunto</th><th>Canal</th><th>Estado</th><th>SLA</th><th></th></tr></thead>
+    <tbody>
+    {% for r in reclamos %}
+      <tr>
+        <td class="num">#{{ r.id }}</td>
+        <td>{{ r.cliente_nombre }}</td>
+        <td>{{ r.asunto }}{% if r.reiteraciones %} <span class="estado estado-reiterado">Reiterado ×{{ r.reiteraciones + 1 }}</span>{% endif %}</td>
+        <td>{{ r.canal|canal_reclamo }}</td>
+        <td><span class="estado estado-{{ r.estado }}">{{ r.estado|estado_reclamo }}</span></td>
+        <td>{% if r.sla_texto %}<span class="sla {{ 'vencido' if r.sla_vencido }}">{{ r.sla_texto }}</span>{% elif r.estado == 'escalado' %}<span class="nota">{{ 'Por SLA' if r.escalado_por == 'sla' else 'Por el administrador' }}</span>{% else %}<span class="nota">—</span>{% endif %}</td>
+        <td><a class="btn btn-sec btn-sm" href="{{ url_for('reclamos.detalle_admin', reclamo_id=r.id) }}">Abrir</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="vacio">
+  {% if total == 0 %}<strong>Todavía no hay reclamos.</strong>Cuando un cliente ingrese uno, aparece acá.
+  {% else %}<strong>No hay reclamos con ese estado.</strong>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

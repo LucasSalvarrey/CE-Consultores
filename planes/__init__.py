@@ -8,4 +8,4 @@ bp = Blueprint("planes", __name__)
 bp.add_app_template_filter(pesos, "pesos")
 
 # Se importa al final porque rutas.py necesita el `bp` que se creó arriba.
-from . import rutas
+from . import rutas

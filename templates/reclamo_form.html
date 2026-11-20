@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Nuevo reclamo · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="tarjeta angosta">
+  <h1>Nuevo reclamo</h1>
+  <p class="nota">Si ya tenés un reclamo abierto sobre el mismo asunto, sumamos tu mensaje a ese reclamo en lugar de crear otro.</p>
+  <form method="post" novalidate>
+
+    <label for="asunto">Asunto</label>
+    <input id="asunto" name="asunto" value="{{ valores.get('asunto', '') }}" maxlength="100">
+    {% if errores.asunto %}<div class="error">{{ errores.asunto }}</div>{% endif %}
+
+    <label for="canal">Canal por el que nos escribís</label>
+    <select id="canal" name="canal">
+      <option value="">Elegí un canal…</option>
+      {% for clave, texto in canales.items() %}
+      <option value="{{ clave }}" {% if valores.get('canal') == clave %}selected{% endif %}>{{ texto }}</option>
+      {% endfor %}
+    </select>
+    {% if errores.canal %}<div class="error">{{ errores.canal }}</div>{% endif %}
+
+    <label for="detalle">¿Qué pasó?</label>
+    <textarea id="detalle" name="detalle" rows="5">{{ valores.get('detalle', '') }}</textarea>
+    {% if errores.detalle %}<div class="error">{{ errores.detalle }}</div>{% endif %}
+
+    <div class="form-acciones">
+      <button type="submit">Enviar reclamo</button>
+      <a class="btn btn-sec cancelar" href="{{ url_for('reclamos.mis_reclamos') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

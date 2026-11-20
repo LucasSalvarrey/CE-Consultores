@@ -9,6 +9,9 @@ class Store:
         self.clientes = {}
         self.solicitudes = {}
         self.facturas = {}
+        self.devoluciones = {}
+        self.reclamos = {}
+        self.registro = []
 
         self.administradores = {
             1: {
@@ -32,4 +35,4 @@ class Store:
     def siguiente_id(self, coleccion):
         if coleccion not in self._ids:
             self._ids[coleccion] = count(1)
-        return next(self._ids[coleccion])
+        return next(self._ids[coleccion])

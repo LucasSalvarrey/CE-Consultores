@@ -7,33 +7,67 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header>
-    <span>CE Consultores</span>
-    <nav>
-      {% if cliente_actual %}
-        <span class="saludo">Hola, {{ cliente_actual.nombre }}</span>
-        <a class="planes" href="{{ url_for('planes.catalogo') }}">Planes</a>
-        <a class="solicitudes" href="{{ url_for('solicitudes.mis_solicitudes') }}">Solicitudes</a>
-        <a class="mi-cuenta" href="{{ url_for('clientes.mi_cuenta') }}">Mi cuenta</a>
+  {% set ep = request.endpoint or '' %}
+  <header class="topbar">
+    <div class="topbar__in">
+      <a class="marca" href="{{ url_for('inicio') }}">
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b86ff"/><stop offset="1" stop-color="#2a47b8"/></linearGradient></defs>
+          <rect width="32" height="32" rx="8" fill="url(#g)"/>
+          <path d="M20.5 11.2a6.3 6.3 0 1 0 0 9.6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>CE Consultores</span>
+      </a>
+
+      <nav class="menu" aria-label="Principal">
+        {% if cliente_actual %}
+          <a href="{{ url_for('planes.catalogo') }}" class="{{ 'activo' if ep.startswith('planes.') }}">Planes</a>
+          <a href="{{ url_for('solicitudes.mis_solicitudes') }}" class="{{ 'activo' if ep.startswith('solicitudes.') }}">Solicitudes</a>
+          <a href="{{ url_for('reclamos.mis_reclamos') }}" class="{{ 'activo' if ep.startswith('reclamos.') }}">Reclamos</a>
+          <a href="{{ url_for('clientes.avisos') }}" class="{{ 'activo' if ep == 'clientes.avisos' }}">Avisos{% if avisos_sin_leer %} <span class="contador" title="Avisos sin leer">{{ avisos_sin_leer }}</span>{% endif %}</a>
+          <a href="{{ url_for('clientes.mi_cuenta') }}" class="{{ 'activo' if ep in ('clientes.mi_cuenta', 'clientes.editar_perfil') }}">Mi cuenta</a>
+        {% elif admin_actual %}
+          <a href="{{ url_for('inicio.panel') }}" class="{{ 'activo' if ep.startswith('inicio.') }}">Inicio</a>
+          <a href="{{ url_for('solicitudes.panel') }}" class="{{ 'activo' if ep.startswith('solicitudes.') }}">Solicitudes</a>
+          <a href="{{ url_for('reclamos.panel') }}" class="{{ 'activo' if ep.startswith('reclamos.') }}">Reclamos</a>
+          <a href="{{ url_for('facturacion.listado') }}" class="{{ 'activo' if ep.startswith('facturacion.') }}">Facturación</a>
+          <a href="{{ url_for('reportes.reportes') }}" class="{{ 'activo' if ep.startswith('reportes.') }}">Reportes</a>
+          <a href="{{ url_for('auditoria.registro_de_cambios') }}" class="{{ 'activo' if ep.startswith('auditoria.') }}">Registro</a>
+          <a href="{{ url_for('planes.catalogo') }}" class="{{ 'activo' if ep.startswith('planes.') }}">Planes</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="{{ 'activo' if ep == 'auth.login' }}">Ingresar</a>
+          <a href="{{ url_for('clientes.registro') }}" class="{{ 'activo' if ep == 'clientes.registro' }}">Registrarme</a>
+        {% endif %}
+      </nav>
+
+      {% if cliente_actual or admin_actual %}
+      <div class="usuario">
+        {% if cliente_actual %}
+          <span class="saludo">Hola, {{ cliente_actual.nombre }}</span>
+        {% else %}
+          <span class="saludo">Hola, {{ admin_actual.nombre }} (administrador)</span>
+        {% endif %}
         <form method="post" action="{{ url_for('auth.logout') }}">
           <button type="submit" class="salir">Salir</button>
         </form>
-      {% elif admin_actual %}
-        <span class="saludo">Hola, {{ admin_actual.nombre }} (administrador)</span>
-        <a class="planes" href="{{ url_for('planes.catalogo') }}">Planes</a>
-        <a class="solicitudes" href="{{ url_for('solicitudes.panel') }}">Solicitudes</a>
-        <form method="post" action="{{ url_for('auth.logout') }}">
-          <button type="submit" class="salir">Salir</button>
-        </form>  
-        
+      </div>
       {% endif %}
-    </nav>
+    </div>
   </header>
-  <main>
-    {% for mensaje in get_flashed_messages() %}
-      <div class="ok" role="status">{{ mensaje }}</div>
+
+  <main class="contenedor">
+    {% for alerta in alertas_admin %}
+      <div class="aviso aviso-{{ alerta.nivel }}" role="alert">
+        <span>{{ alerta.texto }}</span>
+        <a class="aviso__accion" href="{{ alerta.enlace }}">{{ alerta.accion }} →</a>
+      </div>
+    {% endfor %}
+    {% for categoria, mensaje in get_flashed_messages(with_categories=true) %}
+      <div class="aviso aviso-{{ {'error': 'error', 'alerta': 'alerta'}.get(categoria, 'ok') }}" role="status"><span>{{ mensaje }}</span></div>
     {% endfor %}
     {% block contenido %}{% endblock %}
   </main>
+
+  <footer class="pie">CE Consultores · Sistema de gestión de clientes y planes · Demo del TP</footer>
 </body>
 </html>

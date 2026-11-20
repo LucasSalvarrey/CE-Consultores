@@ -66,4 +66,4 @@ def valores_de(plan):
         "descripcion": plan["descripcion"] or "",
         "costo_mensual": f"{costo:.2f}".replace(".", ",") if costo is not None else "",
         "sla_horas": plan["sla_horas"] if plan["sla_horas"] is not None else "",
-    }
+    }

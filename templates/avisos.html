@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Avisos · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>Avisos</h1>
+    <p>Las novedades de tus solicitudes, facturas y reclamos.</p>
+  </div>
+</div>
+
+{% if avisos %}
+<ul class="notificaciones">
+  {% for a in avisos %}
+  <li class="notificacion {{ 'nueva' if not a.leido }}">
+    <div class="notificacion__cuerpo">
+      <p>{{ a.mensaje }}</p>
+      <span class="notificacion__fecha">{{ a.fecha|fecha }}</span>
+    </div>
+    {% if a.enlace %}<a class="btn btn-sec btn-sm" href="{{ a.enlace }}">Ver</a>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="vacio"><strong>No tenés avisos.</strong>Cuando haya novedades sobre tus pedidos, aparecen acá.</div>
+{% endif %}
+{% endblock %}

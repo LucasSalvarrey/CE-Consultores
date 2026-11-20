@@ -1,25 +1,28 @@
 {% extends "base.html" %}
 {% block titulo %}Planes · CE Consultores{% endblock %}
 {% block contenido %}
-<h1>Planes</h1>
-
-{% if admin_actual %}
-<p><a class="nuevo_plan" href="{{ url_for('planes.plan_nuevo') }}">Nuevo plan</a></p>
-{% endif %}
-
-{% for plan in planes %}
-<div class="tarjeta plan">
-  <h2>{{ plan.nombre }}</h2>
-  <p>{{ plan.descripcion or "Descripción a definir." }}</p>
-  <dl>
-    <dt>Costo mensual</dt>
-    <dd>{% if plan.costo_mensual is not none %}$ {{ plan.costo_mensual|pesos }}{% else %}A definir{% endif %}</dd>
-    <dt>Tiempo de SLA</dt>
-    <dd>{% if plan.sla_horas %}{{ plan.sla_horas }} h{% else %}A definir{% endif %}</dd>
-  </dl>
+<div class="pagina-titulo">
+  <div>
+    <h1>Planes</h1>
+    <p>Elegí el plan que mejor se adapte a lo que necesitás.</p>
+  </div>
   {% if admin_actual %}
-  <p><a class="editar_plan" href="{{ url_for('planes.plan_editar', plan_id=plan.id) }}">Editar</a></p>
+  <div class="acciones"><a class="btn nuevo_plan" href="{{ url_for('planes.plan_nuevo') }}">Nuevo plan</a></div>
   {% endif %}
 </div>
+
+<div class="grilla grilla-3">
+{% for plan in planes %}
+  <div class="tarjeta plan {{ 'plan--actual' if cliente_actual and cliente_actual.plan_id == plan.id }}">
+    <h2>{{ plan.nombre }}{% if cliente_actual and cliente_actual.plan_id == plan.id %} <span class="estado estado-validada">Tu plan</span>{% endif %}</h2>
+    <div class="nota">Costo mensual</div>
+    <div class="plan__precio">{% if plan.costo_mensual is not none %}$ {{ plan.costo_mensual|pesos }}{% else %}A definir{% endif %}</div>
+    <div class="plan__sla"><span class="estado estado-escalado">Tiempo de SLA: {% if plan.sla_horas %}{{ plan.sla_horas }} h{% else %}A definir{% endif %}</span></div>
+    <p class="plan__desc">{{ plan.descripcion or "Descripción a definir." }}</p>
+    {% if admin_actual %}
+    <div class="acciones"><a class="btn btn-sec btn-sm editar_plan" href="{{ url_for('planes.plan_editar', plan_id=plan.id) }}">Editar</a></div>
+    {% endif %}
+  </div>
 {% endfor %}
+</div>
 {% endblock %}

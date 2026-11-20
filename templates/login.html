@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block titulo %}Ingresar · CE Consultores{% endblock %}
 {% block contenido %}
-<div class="tarjeta">
+<div class="tarjeta angosta">
   <h1>Ingresar</h1>
+  <p class="nota">Entrá con tu email y tu contraseña.</p>
   {% if error %}<div class="rechazo" role="alert">{{ error }}</div>{% endif %}
   <form method="post" novalidate>
     <input type="hidden" name="next" value="{{ siguiente }}">
@@ -10,8 +11,10 @@
     <input id="email" name="email" type="email" value="{{ email }}" autocomplete="email">
     <label for="password">Contraseña</label>
     <input id="password" name="password" type="password" autocomplete="current-password">
-    <button type="submit">Ingresar</button>
+    <div class="form-acciones">
+      <button type="submit">Ingresar</button>
+    </div>
   </form>
-  <p>¿No tenés cuenta? <a class= "registrarme2" href="{{ url_for('clientes.registro') }}">Registrate</a></p>
+  <p class="nota" style="margin-top:18px">¿No tenés cuenta? <a class="registrarme2" href="{{ url_for('clientes.registro') }}">Registrate</a></p>
 </div>
 {% endblock %}

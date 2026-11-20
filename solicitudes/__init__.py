@@ -1,33 +1,39 @@
-"""Solicitudes de modificación de plan (US3 a US6).
+"""Solicitudes de modificación de plan.
 
-El cliente pide un cambio de plan (US3), ve cómo avanza su pedido (US5) y puede
-anularlo mientras siga pendiente (US6). El administrador ve todas las
-solicitudes y marca como realizadas las pendientes (US4).
+El cliente pide un alta, un cambio o la baja de su plan (HU-13), puede adjuntar
+documentación (HU-15), ve cómo avanza su pedido y puede anularlo mientras siga
+pendiente. El administrador valida la documentación (HU-16 y HU-17), asigna
+prioridad y filtra (HU-19), y aprueba o rechaza.
 
 Una solicitud pasa por estos estados:
-    pendiente  ->  realizado    (el administrador la aprueba y PagoNet acepta la facturación)
-    pendiente  ->  rechazada    (el administrador la rechaza, o PagoNet rechaza la facturación)
+    pendiente  ->  realizado    (la aprueba el administrador)
+    pendiente  ->  rechazada    (la rechaza el administrador)
     pendiente  ->  anulada      (la anula el cliente)
 Una solicitud realizada, rechazada o anulada ya no cambia.
 
-Al aprobarla se factura el plan nuevo en PagoNet (simulado). Si el cobro se
-acepta, el cliente pasa al plan pedido; si no, la solicitud queda rechazada y
-su plan no cambia. NotiSys (simulado) avisa al cliente cuando la solicitud
-queda pendiente, realizada o rechazada.
+Al aprobar un alta o un cambio de plan el cliente pasa al plan pedido y se
+genera una factura pendiente, que el administrador cobra en «Facturación»
+(HU-21). Al aprobar una baja el cliente queda sin plan y no se factura nada.
+Si la solicitud tiene documentación, el administrador debe validarla antes de
+poder aprobarla.
 
 El paquete se reparte así:
-    estados.py        los estados y sus textos
+    estados.py        estados, tipos y prioridades, con sus textos
+    documentos.py     qué archivos se aceptan como documentación
     validaciones.py   qué se acepta en el formulario de una solicitud
     rutas.py          las pantallas del cliente y el panel del administrador
 """
 from flask import Blueprint
 
-from .estados import etiqueta
+from .estados import doc_etiqueta, etiqueta, prioridad_etiqueta, tipo_etiqueta
 
 bp = Blueprint("solicitudes", __name__)
 
-# El filtro queda disponible en todos los templates: {{ estado|estado_solicitud }}
+# Los filtros quedan disponibles en todos los templates: {{ estado|estado_solicitud }}
 bp.add_app_template_filter(etiqueta, "estado_solicitud")
+bp.add_app_template_filter(tipo_etiqueta, "tipo_solicitud")
+bp.add_app_template_filter(prioridad_etiqueta, "prioridad_solicitud")
+bp.add_app_template_filter(doc_etiqueta, "doc_estado")
 
 # Se importa al final porque rutas.py necesita el `bp` que se creó arriba.
 from . import rutas

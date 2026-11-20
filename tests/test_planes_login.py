@@ -7,10 +7,10 @@ from ayudas import ADMIN_EMAIL, CLIENTE_PASSWORD, PlanesBase
 class PlanesLoginTest(PlanesBase):
     # --- login del administrador ------------------------------------------
 
-    def test_admin_inicia_sesion_y_va_al_catalogo(self):
+    def test_admin_inicia_sesion_y_va_a_su_panel(self):
         r = self.como_admin()
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.headers["Location"].endswith("/planes"))
+        self.assertTrue(r.headers["Location"].endswith("/admin"))
         with self.client.session_transaction() as s:
             self.assertEqual(s.get("admin_id"), 1)
             self.assertNotIn("cliente_id", s)
@@ -56,4 +56,4 @@ class PlanesLoginTest(PlanesBase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main()

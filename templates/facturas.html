@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block titulo %}Facturación · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>Facturación</h1>
+    <p>Cobrá las facturas con un botón. Si PagoNet falla, reintentá o devolvé el dinero al cliente.</p>
+  </div>
+</div>
+
+<div class="filtros">
+  <div class="filtros__grupo">
+    <a class="chip {{ 'activo' if not estado }}" href="{{ url_for('facturacion.listado') }}">Todas <small>{{ total }}</small></a>
+    {% for clave, texto in [('pendiente', 'Pendientes'), ('fallida', 'Con falla'), ('pagada', 'Pagadas'), ('devuelta', 'Devueltas')] %}
+    <a class="chip {{ 'activo' if estado == clave }}" href="{{ url_for('facturacion.listado', estado=clave) }}">{{ texto }} <small>{{ conteos.get(clave, 0) }}</small></a>
+    {% endfor %}
+  </div>
+</div>
+
+{% if facturas %}
+<div class="tabla-wrap">
+  <table class="tabla">
+    <thead>
+      <tr><th>N.º</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Estado</th><th>Intentos</th><th>Gestión</th></tr>
+    </thead>
+    <tbody>
+    {% for f in facturas %}
+      <tr>
+        <td class="num">#{{ f.id }}<br><span class="nota">Solicitud #{{ f.solicitud_id }}</span></td>
+        <td>{{ f.cliente_nombre }}</td>
+        <td>{{ f.plan_nombre }}</td>
+        <td class="num"><strong>$ {{ f.monto|pesos }}</strong></td>
+        <td>
+          <span class="estado estado-{{ f.estado }}">{{ f.estado|estado_factura }}</span>
+          {% if f.estado == "fallida" and f.motivo_falla %}<div class="motivo">{{ f.motivo_falla }}</div>{% endif %}
+          {% if f.devolucion %}<div class="nota">Devolución #{{ f.devolucion.id }} · {{ f.devolucion.fecha|fecha }}</div>{% endif %}
+        </td>
+        <td class="num">{{ f.intentos }}</td>
+        <td>
+          {% if f.estado in ("pendiente", "fallida") %}
+          <div class="acciones">
+            <form method="post" action="{{ url_for('facturacion.facturar', factura_id=f.id) }}">
+              <input type="hidden" name="volver" value="{{ request.full_path.rstrip('?') }}">
+              <label class="casilla"><input type="checkbox" name="simular_falla" value="1"> Simular falla</label>
+              <button type="submit" class="btn-sm">{{ 'Reintentar cobro' if f.estado == 'fallida' else 'Facturar en PagoNet' }}</button>
+            </form>
+            {% if f.estado == "fallida" %}
+            <form method="post" action="{{ url_for('facturacion.devolver', factura_id=f.id) }}">
+              <input type="hidden" name="volver" value="{{ request.full_path.rstrip('?') }}">
+              <button type="submit" class="btn-peligro btn-sm">Realizar devolución</button>
+            </form>
+            {% endif %}
+          </div>
+          {% else %}
+          <span class="nota">Sin acciones pendientes</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="vacio">
+  {% if total == 0 %}
+  <strong>Todavía no hay facturas.</strong>Se generan cuando aprobás el alta o el cambio de un plan.
+  {% else %}
+  <strong>No hay facturas con ese estado.</strong>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

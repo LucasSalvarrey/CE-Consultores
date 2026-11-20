@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block titulo %}Reclamo #{{ reclamo.id }} · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>{{ reclamo.asunto }}</h1>
+    <p>
+      Reclamo #{{ reclamo.id }}{% if es_admin %} · {{ reclamo.cliente_nombre }}{% endif %}
+      · {{ reclamo.canal|canal_reclamo }} · ingresado el {{ reclamo.creado|fecha }}
+    </p>
+  </div>
+  <div class="item__insignias">
+    {% if reclamo.reiteraciones %}<span class="estado estado-reiterado">Reiterado ×{{ reclamo.reiteraciones + 1 }}</span>{% endif %}
+    <span class="estado estado-{{ reclamo.estado }}">{{ reclamo.estado|estado_reclamo }}</span>
+    {% if reclamo.sla_texto %}<span class="sla {{ 'vencido' if reclamo.sla_vencido }}">{{ reclamo.sla_texto }} (SLA de {{ reclamo.sla_horas }} h)</span>{% endif %}
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2>Conversación</h2>
+  <div class="conversacion">
+    {% for m in reclamo.mensajes %}
+    {% set propio = (m.autor == 'admin') if es_admin else (m.autor == 'cliente') %}
+    <div class="burbuja burbuja-{{ m.autor }}{{ ' burbuja-propia' if propio and m.autor == 'cliente' }}">
+      <div class="burbuja__meta">{{ m.nombre }}{% if m.autor == 'admin' %} · Soporte{% endif %} · {{ m.fecha|fecha }}</div>
+      <p>{{ m.texto }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if reclamo.estado in ("pendiente", "escalado") %}
+  <form method="post" action="{{ url_for('reclamos.responder', reclamo_id=reclamo.id) if es_admin else url_for('reclamos.escribir', reclamo_id=reclamo.id) }}" novalidate>
+    <label for="texto">{{ 'Tu respuesta' if es_admin else 'Agregar un mensaje' }}</label>
+    <textarea id="texto" name="texto" rows="3"></textarea>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <div class="form-acciones">
+      {% if es_admin %}
+      <button type="submit" name="accion" value="responder">Responder</button>
+      <button type="submit" name="accion" value="resolver" class="btn-ok">Responder y resolver</button>
+      {% else %}
+      <button type="submit">Enviar mensaje</button>
+      {% endif %}
+    </div>
+  </form>
+  {% else %}
+  <p class="nota">Este reclamo está {{ reclamo.estado|estado_reclamo|lower }}: no se pueden agregar mensajes.</p>
+  {% endif %}
+</div>
+
+<div class="acciones">
+  {% if es_admin %}
+    {% if reclamo.estado == "pendiente" %}
+    <form method="post" action="{{ url_for('reclamos.escalar_manual', reclamo_id=reclamo.id) }}"><button type="submit" class="btn-sec">Escalar reclamo</button></form>
+    {% elif reclamo.estado == "resuelto" %}
+    <form method="post" action="{{ url_for('reclamos.reabrir', reclamo_id=reclamo.id) }}"><button type="submit" class="btn-sec">Reabrir reclamo</button></form>
+    {% endif %}
+    <a class="btn btn-sec" href="{{ url_for('reclamos.panel') }}">Volver a reclamos</a>
+  {% else %}
+    {% if reclamo.estado == "pendiente" %}
+    <form method="post" action="{{ url_for('reclamos.anular', reclamo_id=reclamo.id) }}"><button type="submit" class="btn-peligro">Anular reclamo</button></form>
+    {% endif %}
+    <a class="btn btn-sec" href="{{ url_for('reclamos.mis_reclamos') }}">Volver a mis reclamos</a>
+  {% endif %}
+</div>
+{% endblock %}

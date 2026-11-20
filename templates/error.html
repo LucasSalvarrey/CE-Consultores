@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }} · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-error">
+  <div class="codigo">{{ codigo }}</div>
+  <h1>{{ titulo }}</h1>
+  <p>{{ texto }}</p>
+  <a class="btn" href="{{ url_for('inicio') }}">Volver al inicio</a>
+</div>
+{% endblock %}

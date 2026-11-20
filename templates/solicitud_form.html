@@ -1,17 +1,25 @@
 {% extends "base.html" %}
 {% block titulo %}Nueva solicitud · CE Consultores{% endblock %}
 {% block contenido %}
-<div class="tarjeta">
+<div class="tarjeta angosta">
   <h1>Nueva solicitud de modificación</h1>
+  {% if plan_actual %}
   <p>Tu plan actual es <strong>{{ plan_actual.nombre }}</strong>.</p>
-  <form method="post" novalidate>
+  {% else %}
+  <p>Por ahora <strong>no tenés un plan contratado</strong>.</p>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" novalidate>
 
     <label for="plan_id">Plan que querés contratar</label>
     <select id="plan_id" name="plan_id">
-      <option value="">Elegí un plan…</option>
+      <option value="">Elegí una opción…</option>
       {% for plan in planes %}
         <option value="{{ plan.id }}" {% if valores.get('plan_id') == plan.id|string %}selected{% endif %}>{{ plan.nombre }}</option>
       {% endfor %}
+      {% if plan_actual %}
+        <option value="{{ sin_plan }}" {% if valores.get('plan_id') == sin_plan %}selected{% endif %}>Ninguno (dar de baja mi plan)</option>
+      {% endif %}
     </select>
     {% if errores.plan_id %}<div class="error">{{ errores.plan_id }}</div>{% endif %}
 
@@ -19,8 +27,15 @@
     <textarea id="detalle" name="detalle" rows="4">{{ valores.get('detalle', '') }}</textarea>
     {% if errores.detalle %}<div class="error">{{ errores.detalle }}</div>{% endif %}
 
-    <button type="submit">Enviar solicitud</button>
-    <a class="cancelar" href="{{ url_for('solicitudes.mis_solicitudes') }}">Cancelar</a>
+    <label for="documento">Documentación <span class="opcional">(opcional)</span></label>
+    <input id="documento" name="documento" type="file" accept=".pdf,.png,.jpg,.jpeg">
+    <div class="nota">PDF, PNG o JPG de hasta {{ max_mb }} MB. El administrador la revisa antes de aprobar el pedido.</div>
+    {% if errores.documento %}<div class="error">{{ errores.documento }}</div>{% endif %}
+
+    <div class="form-acciones">
+      <button type="submit">Enviar solicitud</button>
+      <a class="btn btn-sec cancelar" href="{{ url_for('solicitudes.mis_solicitudes') }}">Cancelar</a>
+    </div>
   </form>
 </div>
 {% endblock %}

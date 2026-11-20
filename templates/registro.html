@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block titulo %}Registro · CE Consultores{% endblock %}
 {% block contenido %}
-
-<div class="tarjeta">
+<div class="tarjeta angosta">
   <h1>Crear mi cuenta</h1>
+  <p class="nota">Validamos tu identidad automáticamente con VeriCheck para habilitar tu cuenta.</p>
 
   {% if rechazo %}
   <div class="rechazo" role="alert">
@@ -46,8 +46,11 @@
     <label for="password2">Repetir contraseña</label>
     <input id="password2" name="password2" type="password" autocomplete="new-password">
     {% if errores.password2 %}<div class="error">{{ errores.password2 }}</div>{% endif %}
-    <button type="submit">Registrarme</button>
-    <a class="ingresar" href="{{ url_for('auth.login') }}">Iniciar sesión</a>
+
+    <div class="form-acciones">
+      <button type="submit">Registrarme</button>
+      <a class="btn btn-sec ingresar" href="{{ url_for('auth.login') }}">Iniciar sesión</a>
+    </div>
   </form>
 </div>
 {% endblock %}

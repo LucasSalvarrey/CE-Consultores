@@ -12,9 +12,8 @@ CLIENTE_DEMO = {
 }
 PASSWORD_DEMO = "clave-segura-2"
 
-# Valores de ejemplo para los planes Básico y Estándar, así la demo funciona de entrada.
-# El Premium queda sin costo ni SLA a propósito: sirve para ver cómo PagoNet rechaza
-# la facturación de un plan sin costo definido.
+# Valores de ejemplo para los 3 planes iniciales, así la demo funciona de entrada.
+# Los SLA son cortos a propósito: sirven para probar el escalado de reclamos.
 PLANES_DEMO = {
     1: {"descripcion": "Soporte por correo en horario laboral.",
         "costo_mensual": Decimal("5000.00"), "sla_horas": 72},
@@ -31,7 +30,7 @@ SOLICITUD_DEMO = {
 
 
 def cargar_datos(store):
-    """Completa dos planes, y agrega el cliente de ejemplo (habilitado) con una solicitud pendiente."""
+    """Completa los planes y agrega el cliente de ejemplo (habilitado) con una solicitud pendiente."""
     for plan_id, valores in PLANES_DEMO.items():
         store.planes[plan_id].update(valores)
 

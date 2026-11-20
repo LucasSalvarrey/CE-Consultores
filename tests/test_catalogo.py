@@ -34,4 +34,4 @@ class CatalogoTest(PlanesBase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main()

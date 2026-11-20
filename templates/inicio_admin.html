@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>Panel de administración</h1>
+    <p>Un vistazo a lo que necesita atención hoy.</p>
+  </div>
+</div>
+
+<div class="grilla grilla-4" style="margin-bottom:18px">
+  <a class="stat {{ 'stat--alerta' if resumen.solicitudes_urgentes }}" href="{{ url_for('solicitudes.panel', estado='pendiente') }}">
+    <div class="stat__etiqueta">Solicitudes pendientes</div>
+    <div class="stat__valor">{{ resumen.solicitudes_pendientes }}</div>
+    <div class="stat__nota">{{ resumen.solicitudes_urgentes }} de prioridad alta</div>
+  </a>
+  <a class="stat {{ 'stat--alerta' if resumen.reclamos_escalados }}" href="{{ url_for('reclamos.panel') }}">
+    <div class="stat__etiqueta">Reclamos abiertos</div>
+    <div class="stat__valor">{{ resumen.reclamos_abiertos }}</div>
+    <div class="stat__nota">{{ resumen.reclamos_escalados }} escalados</div>
+  </a>
+  <a class="stat {{ 'stat--error' if resumen.facturas_fallidas }}" href="{{ url_for('facturacion.listado') }}">
+    <div class="stat__etiqueta">Facturas por gestionar</div>
+    <div class="stat__valor">{{ resumen.facturas_por_gestionar }}</div>
+    <div class="stat__nota">{{ resumen.facturas_fallidas }} con falla en PagoNet</div>
+  </a>
+  <a class="stat" href="{{ url_for('reportes.reportes') }}">
+    <div class="stat__etiqueta">Clientes</div>
+    <div class="stat__valor">{{ resumen.clientes }}</div>
+    <div class="stat__nota">Armar un reporte →</div>
+  </a>
+</div>
+
+<div class="tarjeta">
+  <div class="item__cabecera"><h2 style="margin:0">Últimos cambios</h2><a class="btn btn-sec btn-sm" href="{{ url_for('auditoria.registro_de_cambios') }}">Ver todo</a></div>
+  {% if ultimos %}
+  <div class="tabla-wrap" style="box-shadow:none;border:0">
+    <table class="tabla">
+      <tbody>
+      {% for e in ultimos %}
+        <tr>
+          <td class="num">{{ e.fecha|fecha }}</td>
+          <td>{{ e.actor }}</td>
+          <td><strong>{{ e.accion }}</strong>{% if e.ref %} <span class="nota">#{{ e.ref }}</span>{% endif %}</td>
+          <td>{{ e.detalle }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="nota">Todavía no hay cambios registrados.</p>
+  {% endif %}
+</div>
+{% endblock %}

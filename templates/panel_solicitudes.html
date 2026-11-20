@@ -1,35 +1,110 @@
 {% extends "base.html" %}
 {% block titulo %}Solicitudes · CE Consultores{% endblock %}
 {% block contenido %}
-<h1>Solicitudes de los clientes</h1>
-
-{% for s in solicitudes %}
-<div class="tarjeta solicitud">
-  <h2>{{ s.cliente_nombre }}<span class="estado estado-{{ s.estado }}">{{ s.estado|estado_solicitud }}</span></h2>
-  <dl>
-    <dt>Plan solicitado</dt>
-    <dd>{{ s.plan_nombre }}</dd>
-    <dt>Detalle</dt>
-    <dd class="detalle">{{ s.detalle }}</dd>
-    <dt>Creada</dt>
-    <dd>{{ s.creado }}</dd>
-    {% if s.motivo %}
-    <dt>Motivo</dt>
-    <dd>{{ s.motivo }}</dd>
-    {% endif %}
-  </dl>
-  {% if s.estado == "pendiente" %}
-  <div class="acciones">
-    <form method="post" action="{{ url_for('solicitudes.realizar', solicitud_id=s.id) }}">
-      <button type="submit" class="realizar">Marcar como realizada</button>
-    </form>
-    <form method="post" action="{{ url_for('solicitudes.rechazar', solicitud_id=s.id) }}">
-      <button type="submit" class="rechazar">Rechazar</button>
-    </form>
+<div class="pagina-titulo">
+  <div>
+    <h1>Solicitudes de los clientes</h1>
+    <p>Asigná prioridades, validá la documentación y aprobá o rechazá los pedidos.</p>
   </div>
-  {% endif %}
 </div>
+
+<div class="filtros">
+  <div class="filtros__grupo">
+    <span class="filtros__rotulo">Estado</span>
+    <a class="chip {{ 'activo' if not estado }}" href="{{ url_for('solicitudes.panel', prioridad=prioridad or None) }}">Todas <small>{{ total }}</small></a>
+    {% for clave, texto in [('pendiente', 'Pendiente'), ('realizado', 'Realizado'), ('rechazada', 'Rechazada'), ('anulada', 'Anulada')] %}
+    <a class="chip {{ 'activo' if estado == clave }}" href="{{ url_for('solicitudes.panel', estado=clave, prioridad=prioridad or None) }}">{{ texto }} <small>{{ conteos.get(clave, 0) }}</small></a>
+    {% endfor %}
+  </div>
+  <div class="filtros__grupo">
+    <span class="filtros__rotulo">Prioridad</span>
+    <a class="chip {{ 'activo' if not prioridad }}" href="{{ url_for('solicitudes.panel', estado=estado or None) }}">Todas</a>
+    {% for clave, texto in [('alta', 'Alta'), ('media', 'Media'), ('baja', 'Baja')] %}
+    <a class="chip {{ 'activo' if prioridad == clave }}" href="{{ url_for('solicitudes.panel', estado=estado or None, prioridad=clave) }}">{{ texto }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="lista">
+{% for s in solicitudes %}
+  <article class="item item--{{ s.estado }} item--prio-{{ s.prioridad }}">
+    <div class="item__cabecera">
+      <h2 class="item__titulo">{{ s.cliente_nombre }}<small>Solicitud #{{ s.id }} · {{ s.tipo|tipo_solicitud }}</small></h2>
+      <div class="item__insignias">
+        <span class="estado estado-{{ s.prioridad }}">Prioridad {{ s.prioridad|prioridad_solicitud|lower }}</span>
+        <span class="estado estado-{{ s.estado }}">{{ s.estado|estado_solicitud }}</span>
+      </div>
+    </div>
+    <div class="item__meta">
+      <span>Plan pedido: <strong>{{ s.plan_nombre }}</strong></span>
+      <span>Creada: <strong>{{ s.creado|fecha }}</strong></span>
+    </div>
+    <p class="detalle">{{ s.detalle }}</p>
+    {% if s.motivo %}<p class="motivo">{{ s.motivo }}</p>{% endif %}
+
+    {% if s.adjunto %}
+    <div class="documento">
+      <span>📎</span>
+      <span class="documento__nombre">{{ s.adjunto.nombre }}</span>
+      <span class="nota">{{ (s.adjunto.tamano / 1024)|round(1) }} KB</span>
+      <span class="estado estado-{{ s.adjunto.estado }}">Documentación {{ s.adjunto.estado|doc_estado|lower }}</span>
+      <a href="{{ url_for('solicitudes.documento', solicitud_id=s.id) }}">Descargar</a>
+      {% if s.estado == "pendiente" and s.adjunto.estado == "recibida" %}
+      <form method="post" action="{{ url_for('solicitudes.validar_documentacion', solicitud_id=s.id) }}" style="margin:0 0 0 auto">
+        <input type="hidden" name="volver" value="{{ request.full_path.rstrip('?') }}">
+        <button type="submit" class="btn-ok btn-sm validar">Validar documentación</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if s.factura %}
+    <div class="documento">
+      <span>🧾</span>
+      <span>Factura #{{ s.factura.id }} · <strong>$ {{ s.factura.monto|pesos }}</strong></span>
+      <span class="estado estado-{{ s.factura.estado }}">{{ s.factura.estado|estado_factura }}</span>
+      {% if s.factura.estado in ("pendiente", "fallida") %}
+      <form method="post" action="{{ url_for('facturacion.facturar', factura_id=s.factura.id) }}" style="margin:0 0 0 auto">
+        <input type="hidden" name="volver" value="{{ request.full_path.rstrip('?') }}">
+        <label class="casilla"><input type="checkbox" name="simular_falla" value="1"> Simular falla</label>
+        <button type="submit" class="btn-sm">{{ 'Reintentar cobro' if s.factura.estado == 'fallida' else 'Facturar en PagoNet' }}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if s.estado == "pendiente" %}
+    <div class="panel-accion">
+      <form method="post" action="{{ url_for('solicitudes.asignar_prioridad', solicitud_id=s.id) }}">
+        <input type="hidden" name="volver" value="{{ request.full_path.rstrip('?') }}">
+        <label class="casilla" for="prioridad-{{ s.id }}">Prioridad</label>
+        <select id="prioridad-{{ s.id }}" name="prioridad" class="en-linea">
+          {% for clave, texto in [('alta', 'Alta'), ('media', 'Media'), ('baja', 'Baja')] %}
+          <option value="{{ clave }}" {{ 'selected' if s.prioridad == clave }}>{{ texto }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-sec btn-sm">Guardar</button>
+      </form>
+      <span class="sep"></span>
+      <form method="post" action="{{ url_for('solicitudes.realizar', solicitud_id=s.id) }}">
+        <input type="hidden" name="volver" value="{{ request.full_path.rstrip('?') }}">
+        <button type="submit" class="btn-ok btn-sm realizar">Marcar como realizada</button>
+      </form>
+      <form method="post" action="{{ url_for('solicitudes.rechazar', solicitud_id=s.id) }}">
+        <input type="hidden" name="volver" value="{{ request.full_path.rstrip('?') }}">
+        <button type="submit" class="btn-peligro btn-sm rechazar">Rechazar</button>
+      </form>
+    </div>
+    {% endif %}
+  </article>
 {% else %}
-<p>Todavía no hay solicitudes.</p>
+  <div class="vacio">
+    {% if total == 0 %}
+    <strong>Todavía no hay solicitudes.</strong>Cuando un cliente haga una, aparece acá.
+    {% else %}
+    <strong>No hay solicitudes con esos filtros.</strong>Probá con otro estado o prioridad.
+    {% endif %}
+  </div>
 {% endfor %}
+</div>
 {% endblock %}

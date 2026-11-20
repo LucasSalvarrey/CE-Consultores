@@ -3,14 +3,27 @@ from datetime import datetime
 
 from flask import abort, current_app, flash, redirect, render_template, request, url_for
 
+from auditoria import registrar
 from auth import admin_requerido, usuario_requerido
 
 from . import bp
+from .formatos import pesos
 from .validaciones import validar_plan, valores_de
 
 
 def _store():
     return current_app.extensions["store"]
+
+
+def _texto(campo, valor):
+    """Un valor de un plan, legible para el registro de cambios."""
+    if valor is None:
+        return "sin definir"
+    if campo == "costo_mensual":
+        return f"$ {pesos(valor)}"
+    if campo == "sla_horas":
+        return f"{valor} h"
+    return str(valor)
 
 
 @bp.get("/planes")
@@ -43,6 +56,10 @@ def plan_nuevo():
         **datos,
         "creado": datetime.now().isoformat(timespec="seconds"),
     }
+    registrar(
+        "Plan creado", "plan", ref=plan_id,
+        detalle=f"{datos['nombre']} · $ {pesos(datos['costo_mensual'])} · SLA {datos['sla_horas']} h",
+    )
     flash(f"Se creó el plan «{datos['nombre']}».")
     return redirect(url_for("planes.catalogo"))
 
@@ -71,8 +88,13 @@ def plan_editar(plan_id):
     if all(plan[campo] == valor for campo, valor in datos.items()):
         flash("No hiciste ningún cambio.")
     else:
+        cambios = [
+            f"{campo}: {_texto(campo, plan[campo])} → {_texto(campo, valor)}"
+            for campo, valor in datos.items() if plan[campo] != valor
+        ]
         # `plan` es el mismo diccionario que guarda el Store: se actualiza ahí.
         plan.update(datos)
+        registrar("Plan modificado", "plan", ref=plan_id, detalle=" · ".join(cambios))
         plan["modificado"] = datetime.now().isoformat(timespec="seconds")
         flash(f"Se actualizó el plan «{datos['nombre']}».")
-    return redirect(url_for("planes.catalogo"))
+    return redirect(url_for("planes.catalogo"))

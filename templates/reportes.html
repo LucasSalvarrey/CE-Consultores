@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>Reportes</h1>
+    <p>Definí qué querés ver y armamos el reporte con su resumen.</p>
+  </div>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px">
+  <h2>Definir reporte</h2>
+  <form method="get" action="{{ url_for('reportes.reportes') }}" novalidate>
+    <div class="formulario-fila">
+      <div>
+        <label for="tipo">Qué querés reportar</label>
+        <select id="tipo" name="tipo">
+          <option value="">Elegí un tipo…</option>
+          {% for clave, texto in tipos.items() %}
+          <option value="{{ clave }}" {% if valores.get('tipo') == clave %}selected{% endif %}>{{ texto }}</option>
+          {% endfor %}
+        </select>
+        {% if errores.tipo %}<div class="error">{{ errores.tipo }}</div>{% endif %}
+      </div>
+      <div>
+        <label for="desde">Desde <span class="opcional">(opcional)</span></label>
+        <input id="desde" name="desde" type="date" value="{{ valores.get('desde', '') }}">
+        {% if errores.desde %}<div class="error">{{ errores.desde }}</div>{% endif %}
+      </div>
+      <div>
+        <label for="hasta">Hasta <span class="opcional">(opcional)</span></label>
+        <input id="hasta" name="hasta" type="date" value="{{ valores.get('hasta', '') }}">
+        {% if errores.hasta %}<div class="error">{{ errores.hasta }}</div>{% endif %}
+      </div>
+      <div>
+        <label for="estado">Estado <span class="opcional">(opcional)</span></label>
+        <select id="estado" name="estado">
+          <option value="">Todos</option>
+          {% for tipo, lista in estados.items() %}
+          <optgroup label="{{ tipos[tipo] }}" data-tipo="{{ tipo }}">
+            {% for clave, texto in lista.items() %}
+            <option value="{{ clave }}" {% if valores.get('estado') == clave and valores.get('tipo') == tipo %}selected{% endif %}>{{ texto }}</option>
+            {% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+        {% if errores.estado %}<div class="error">{{ errores.estado }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="form-acciones">
+      <button type="submit">Armar reporte</button>
+      {% if reporte %}<a class="btn btn-sec" href="{{ url_for('reportes.reportes') }}">Limpiar</a>{% endif %}
+    </div>
+  </form>
+</div>
+
+{% if reporte %}
+  <div class="pagina-titulo" style="margin-bottom:14px">
+    <div>
+      <h2 style="font-size:20px;margin:0">{{ reporte.titulo }}</h2>
+      <p class="nota" style="margin:4px 0 0">Datos {{ reporte.periodo }}</p>
+    </div>
+    {% if not reporte.vacio %}
+    <div class="acciones"><a class="btn btn-sec" href="{{ url_for('reportes.descargar', **request.args) }}">Descargar CSV</a></div>
+    {% endif %}
+  </div>
+
+  {% if reporte.vacio %}
+  <div class="vacio">
+    <strong>Reporte vacío</strong>
+    No hay datos para lo que definiste. Probá con otro período o con otro estado.
+  </div>
+  {% else %}
+  <div class="resumen">
+    {% for etiqueta, valor in reporte.resumen %}
+    <div class="stat"><div class="stat__etiqueta">{{ etiqueta }}</div><div class="stat__valor">{{ valor }}</div></div>
+    {% endfor %}
+  </div>
+  <div class="tabla-wrap">
+    <table class="tabla">
+      <thead><tr>{% for c in reporte.columnas %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for fila in reporte.filas %}
+        <tr>{% for celda in fila %}<td class="{{ 'num' if loop.first }}">{{ celda }}</td>{% endfor %}</tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+{% endif %}
+
+<script>
+  // Muestra solo los estados del tipo de reporte elegido.
+  (function () {
+    var tipo = document.getElementById('tipo'), estado = document.getElementById('estado');
+    function filtrar() {
+      [].forEach.call(estado.querySelectorAll('optgroup'), function (g) {
+        var activo = g.getAttribute('data-tipo') === tipo.value;
+        g.hidden = !activo; g.disabled = !activo;
+      });
+      var elegida = estado.options[estado.selectedIndex];
+      if (elegida && elegida.parentNode.tagName === 'OPTGROUP' && elegida.parentNode.disabled) { estado.value = ''; }
+    }
+    tipo.addEventListener('change', filtrar); filtrar();
+  })();
+</script>
+{% endblock %}

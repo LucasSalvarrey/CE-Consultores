@@ -17,4 +17,4 @@ from flask import Blueprint
 bp = Blueprint("clientes", __name__)
 
 # Se importa al final porque rutas.py necesita el `bp` que se creó arriba.
-from . import rutas 
+from . import rutas 

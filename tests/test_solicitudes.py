@@ -2,40 +2,11 @@
 import unittest
 from decimal import Decimal
 
-from ayudas import PlanesBase, create_app
+from ayudas import create_app
+from ayudas_gestion import GestionBase
 
 
-class SolicitudesBase(PlanesBase):
-    """Atajos para los tests de solicitudes."""
-
-    def crear_solicitud(self, **cambios):
-        datos = {"plan_id": "2", "detalle": "Quiero más atención prioritaria"}
-        datos.update(cambios)
-        return self.client.post("/solicitudes/nueva", data=datos)
-
-    def insertar(self, cliente_id=1, estado="pendiente", plan_id=2, detalle="Detalle de prueba"):
-        """Carga una solicitud directo en el Store, sin pasar por el formulario."""
-        solicitud_id = self.store.siguiente_id("solicitudes")
-        self.store.solicitudes[solicitud_id] = {
-            "id": solicitud_id, "cliente_id": cliente_id, "plan_id": plan_id,
-            "detalle": detalle, "estado": estado, "creado": "2026-01-01T10:00:00",
-        }
-        return solicitud_id
-
-    def cambiar_a_admin(self):
-        self.client.post("/logout")
-        self.como_admin()
-
-    def poner_costo(self, plan_id, costo="9000.00"):
-        """Le define un costo mensual al plan: sin costo, PagoNet no puede facturarlo."""
-        self.store.planes[plan_id]["costo_mensual"] = Decimal(costo)
-
-    def agregar_cliente_ajeno(self):
-        """Un segundo cliente, completo, para que el registro de Lucas no se rompa."""
-        self.store.clientes[2] = {
-            "id": 2, "nombre": "Galo Roselli", "dni": "28999111", "email": "galo@ejemplo.com",
-            "telefono": "+54 11 4444-0000", "plan_id": 1,
-        }
+SolicitudesBase = GestionBase
 
 
 class CrearSolicitudTest(SolicitudesBase):
@@ -341,81 +312,86 @@ class PanelAdminTest(SolicitudesBase):
         self.assertEqual(self.store.solicitudes[sid]["estado"], "pendiente")
 
 
-class FacturacionTest(SolicitudesBase):
-    """Al aprobar una solicitud se factura el plan nuevo en PagoNet (simulado)."""
+class AprobacionTest(SolicitudesBase):
+    """Al aprobar un alta o un cambio de plan se genera una factura pendiente (HU-21)."""
 
     def setUp(self):
         super().setUp()
         self.poner_costo(2)  # el plan 3 queda sin costo a propósito
 
-    def solicitud_de_lucas(self, plan_id=2):
+    def solicitud_de_lucas(self, plan_id=2, **cambios):
         """Lucas (plan 1) pide `plan_id`; deja la sesión iniciada como administrador."""
         self.como_cliente()
-        solicitud_id = self.insertar(cliente_id=1, plan_id=plan_id)
+        solicitud_id = self.insertar(cliente_id=1, plan_id=plan_id, **cambios)
         self.cambiar_a_admin()
         return solicitud_id
 
     def realizar(self, solicitud_id):
         return self.client.post(f"/admin/solicitudes/{solicitud_id}/realizar")
 
-    def test_si_el_cobro_se_acepta_el_cliente_cambia_de_plan(self):
+    def test_aprobar_cambia_el_plan_del_cliente(self):
         sid = self.solicitud_de_lucas()
         self.realizar(sid)
         self.assertEqual(self.store.solicitudes[sid]["estado"], "realizado")
         self.assertEqual(self.store.clientes[1]["plan_id"], 2)
 
-    def test_se_registra_una_factura_aprobada(self):
+    def test_aprobar_genera_una_factura_pendiente(self):
         sid = self.solicitud_de_lucas()
         self.realizar(sid)
         factura = self.store.facturas[self.store.solicitudes[sid]["factura_id"]]
-        self.assertEqual(factura["estado"], "aprobado")
+        self.assertEqual(factura["estado"], "pendiente")
         self.assertEqual(factura["monto"], Decimal("9000.00"))
         self.assertEqual((factura["cliente_id"], factura["plan_id"]), (1, 2))
         self.assertEqual(factura["solicitud_id"], sid)
+        self.assertEqual(factura["intentos"], 0)
 
-    def test_si_el_plan_no_tiene_costo_pagonet_rechaza(self):
+    def test_aprobar_no_cobra_en_pagonet(self):
+        # El cobro es un paso aparte: se hace con un botón en Facturación.
+        sid = self.solicitud_de_lucas()
+        self.realizar(sid)
+        factura = self.store.facturas[self.store.solicitudes[sid]["factura_id"]]
+        self.assertNotIn("modificado", factura)
+        self.assertEqual(factura["estado"], "pendiente")
+
+    def test_se_avisa_que_hay_una_factura_pendiente(self):
+        sid = self.solicitud_de_lucas()
+        self.realizar(sid)
+        html = self.html("/admin/solicitudes")
+        self.assertIn("quedó como realizada", html)
+        self.assertIn("pendiente de facturar en PagoNet", html)
+
+    def test_no_se_aprueba_un_plan_sin_costo(self):
         sid = self.solicitud_de_lucas(plan_id=3)
         self.realizar(sid)
-        s = self.store.solicitudes[sid]
-        self.assertEqual(s["estado"], "rechazada")
-        self.assertIn("PagoNet rechazó la facturación", s["motivo"])
-        self.assertIn("costo mensual", s["motivo"])
-        self.assertEqual(self.store.facturas[s["factura_id"]]["estado"], "rechazado")
-
-    def test_si_pagonet_rechaza_el_plan_del_cliente_no_cambia(self):
-        sid = self.solicitud_de_lucas(plan_id=3)
-        self.realizar(sid)
+        self.assertEqual(self.store.solicitudes[sid]["estado"], "pendiente")
+        self.assertEqual(len(self.store.facturas), 0)
         self.assertEqual(self.store.clientes[1]["plan_id"], 1)
 
-    def test_el_administrador_ve_por_que_se_rechazo(self):
+    def test_se_explica_por_que_no_se_aprobo(self):
         sid = self.solicitud_de_lucas(plan_id=3)
         self.realizar(sid)
-        html = self.client.get("/admin/solicitudes").get_data(as_text=True)
-        self.assertIn("PagoNet rechazó la facturación", html)
-        self.assertIn("Rechazada", html)
+        html = self.html("/admin/solicitudes")
+        self.assertIn("No se puede aprobar", html)
+        self.assertIn("no tiene costo mensual definido", html)
 
-    def test_el_cliente_ve_el_motivo_del_rechazo(self):
-        sid = self.solicitud_de_lucas(plan_id=3)
-        self.realizar(sid)
-        self.client.post("/logout")
-        self.login("lucas@ejemplo.com", "clave-segura-1")
-        html = self.client.get("/solicitudes").get_data(as_text=True)
-        self.assertIn("Rechazada", html)
-        self.assertIn("PagoNet rechazó la facturación", html)
-
-    def test_una_solicitud_ya_resuelta_no_se_factura_dos_veces(self):
+    def test_una_solicitud_ya_resuelta_no_genera_otra_factura(self):
         sid = self.solicitud_de_lucas()
         self.realizar(sid)
         self.realizar(sid)
         self.assertEqual(len(self.store.facturas), 1)
 
-    def test_una_solicitud_anulada_no_se_factura(self):
-        self.como_cliente()
-        sid = self.insertar(cliente_id=1, estado="anulada")
-        self.cambiar_a_admin()
+    def test_una_solicitud_anulada_no_genera_factura(self):
+        sid = self.solicitud_de_lucas(estado="anulada")
         self.realizar(sid)
         self.assertEqual(len(self.store.facturas), 0)
         self.assertEqual(self.store.clientes[1]["plan_id"], 1)
+
+    def test_aprobar_deja_constancia_en_el_registro(self):
+        sid = self.solicitud_de_lucas()
+        self.realizar(sid)
+        acciones = [e["accion"] for e in self.store.registro]
+        self.assertIn("Solicitud aprobada", acciones)
+        self.assertIn("Factura generada", acciones)
 
 
 class RechazoTest(SolicitudesBase):
@@ -508,29 +484,32 @@ class AvisosTest(SolicitudesBase):
         super().setUp()
         self.poner_costo(2)
 
-    @property
-    def notisys(self):
-        return self.app.extensions["notisys"]
-
     def test_crear_una_solicitud_avisa_que_quedo_pendiente(self):
         self.como_cliente()
         self.crear_solicitud()
         self.assertEqual(len(self.notisys.enviadas), 1)
         aviso = self.notisys.enviadas[0]
-        self.assertEqual((aviso["cliente_id"], aviso["solicitud_id"]), (1, 1))
+        self.assertEqual(aviso["cliente_id"], 1)
         self.assertEqual(aviso["evento"], "pendiente")
         self.assertIn("quedó pendiente", aviso["mensaje"])
+        self.assertEqual(aviso["enlace"], "/solicitudes")
 
     def test_el_cliente_ve_sus_avisos(self):
         self.como_cliente()
         self.crear_solicitud()
-        html = self.client.get("/solicitudes").get_data(as_text=True)
-        self.assertIn("Avisos", html)
+        html = self.html("/avisos")
         self.assertIn("Tu solicitud #1 quedó pendiente.", html)
 
-    def test_sin_avisos_no_se_muestra_la_caja(self):
+    def test_sin_avisos_se_informa(self):
         self.como_cliente()
-        self.assertNotIn("Avisos", self.client.get("/solicitudes").get_data(as_text=True))
+        self.assertIn("No tenés avisos", self.html("/avisos"))
+
+    def test_el_menu_cuenta_los_avisos_sin_leer(self):
+        self.como_cliente()
+        self.crear_solicitud()
+        self.assertIn('class="contador"', self.html("/solicitudes"))
+        self.html("/avisos")  # al abrirlos se marcan como leídos
+        self.assertNotIn('class="contador"', self.html("/solicitudes"))
 
     def test_realizar_avisa_con_el_plan_nuevo(self):
         self.como_cliente()
@@ -541,15 +520,6 @@ class AvisosTest(SolicitudesBase):
         self.assertEqual(aviso["evento"], "realizado")
         self.assertIn("fue realizada", aviso["mensaje"])
         self.assertIn("Plan Estándar", aviso["mensaje"])
-
-    def test_el_rechazo_de_pagonet_avisa_con_el_motivo(self):
-        self.como_cliente()
-        sid = self.insertar(cliente_id=1, plan_id=3)  # el plan 3 no tiene costo
-        self.cambiar_a_admin()
-        self.client.post(f"/admin/solicitudes/{sid}/realizar")
-        aviso = self.notisys.enviadas[-1]
-        self.assertEqual(aviso["evento"], "rechazada")
-        self.assertIn("PagoNet rechazó la facturación", aviso["mensaje"])
 
     def test_rechazar_avisa(self):
         self.como_cliente()
@@ -566,11 +536,16 @@ class AvisosTest(SolicitudesBase):
 
     def test_no_se_ven_los_avisos_de_otro_cliente(self):
         self.como_cliente()
-        self.notisys.enviar(2, 5, "pendiente", "AVISO-AJENO")
-        self.notisys.enviar(1, 6, "pendiente", "AVISO-PROPIO")
-        html = self.client.get("/solicitudes").get_data(as_text=True)
+        self.notisys.enviar(2, "pendiente", "AVISO-AJENO")
+        self.notisys.enviar(1, "pendiente", "AVISO-PROPIO")
+        html = self.html("/avisos")
         self.assertIn("AVISO-PROPIO", html)
         self.assertNotIn("AVISO-AJENO", html)
+
+    def test_los_avisos_exigen_sesion(self):
+        r = self.client.get("/avisos")
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("/login", r.headers["Location"])
 
 
 class MenuYMiCuentaTest(SolicitudesBase):
@@ -614,47 +589,26 @@ class DatosDemoSolicitudTest(unittest.TestCase):
         self.assertEqual(s["estado"], "pendiente")
         self.assertIn(s["plan_id"], store.planes)
 
-    def test_basico_y_estandar_de_ejemplo_traen_costo_y_sla(self):
+    def test_los_planes_de_ejemplo_traen_descripcion_costo_y_sla(self):
         app = create_app({"TESTING": True, "CARGAR_DATOS": True})
-        planes = app.extensions["store"].planes
-        for plan_id in (1, 2):
-            self.assertTrue(planes[plan_id]["costo_mensual"] > 0)
-            self.assertTrue(planes[plan_id]["sla_horas"] > 0)
-            self.assertTrue(planes[plan_id]["descripcion"])
-
-    def test_el_premium_de_ejemplo_queda_sin_costo(self):
-        # A propósito: es el plan que muestra el rechazo de PagoNet.
-        app = create_app({"TESTING": True, "CARGAR_DATOS": True})
-        premium = app.extensions["store"].planes[3]
-        self.assertIsNone(premium["costo_mensual"])
-        self.assertIsNone(premium["sla_horas"])
-
-    def test_la_demo_muestra_el_rechazo_de_pagonet_con_el_premium(self):
-        app = create_app({"TESTING": True, "CARGAR_DATOS": True})
-        client = app.test_client()
-        store = app.extensions["store"]
-        client.post("/login", data={"email": "lucas@ejemplo.com", "password": "clave-segura-2"})
-        client.post("/solicitudes/nueva", data={"plan_id": "3", "detalle": "Quiero el Premium"})
-        client.post("/logout")
-        client.post("/login", data={
-            "email": app.config["ADMIN_EMAIL"], "password": app.config["ADMIN_PASSWORD"]})
-        client.post("/admin/solicitudes/2/realizar")
-        self.assertEqual(store.solicitudes[2]["estado"], "rechazada")
-        self.assertIn("costo mensual", store.solicitudes[2]["motivo"])
-        self.assertEqual(store.clientes[1]["plan_id"], 1)
+        for plan in app.extensions["store"].planes.values():
+            self.assertTrue(plan["costo_mensual"] > 0)
+            self.assertTrue(plan["sla_horas"] > 0)
+            self.assertTrue(plan["descripcion"])
 
     def test_la_demo_funciona_de_punta_a_punta(self):
-        # Es el guion del README: el administrador aprueba la solicitud de Lucas.
+        # Es el guion del README: el administrador aprueba la solicitud de Lucas y la cobra.
         app = create_app({"TESTING": True, "CARGAR_DATOS": True})
         client = app.test_client()
         store = app.extensions["store"]
         client.post("/login", data={
             "email": app.config["ADMIN_EMAIL"], "password": app.config["ADMIN_PASSWORD"]})
-        r = client.post("/admin/solicitudes/1/realizar")
-        self.assertEqual(r.status_code, 302)
+        client.post("/admin/solicitudes/1/realizar")
         self.assertEqual(store.solicitudes[1]["estado"], "realizado")
         self.assertEqual(store.clientes[1]["plan_id"], 2)
-        self.assertEqual(store.facturas[1]["estado"], "aprobado")
+        self.assertEqual(store.facturas[1]["estado"], "pendiente")
+        client.post("/admin/facturas/1/facturar")
+        self.assertEqual(store.facturas[1]["estado"], "pagada")
 
     def test_sin_datos_de_ejemplo_no_hay_solicitudes(self):
         app = create_app({"TESTING": True, "CARGAR_DATOS": False})

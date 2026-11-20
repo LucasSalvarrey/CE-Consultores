@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Mis reclamos · CE Consultores{% endblock %}
+{% block contenido %}
+<div class="pagina-titulo">
+  <div>
+    <h1>Mis reclamos</h1>
+    <p>Contanos si algo salió mal. Te respondemos dentro del tiempo de SLA de tu plan.</p>
+  </div>
+  <div class="acciones"><a class="btn" href="{{ url_for('reclamos.nuevo') }}">Nuevo reclamo</a></div>
+</div>
+
+<div class="lista">
+{% for r in reclamos %}
+  <article class="item item--{{ r.estado }}">
+    <div class="item__cabecera">
+      <h2 class="item__titulo"><a href="{{ url_for('reclamos.detalle', reclamo_id=r.id) }}" style="color:inherit;text-decoration:none">{{ r.asunto }}</a><small>Reclamo #{{ r.id }}</small></h2>
+      <div class="item__insignias">
+        {% if r.reiteraciones %}<span class="estado estado-reiterado">Reiterado ×{{ r.reiteraciones + 1 }}</span>{% endif %}
+        <span class="estado estado-{{ r.estado }}">{{ r.estado|estado_reclamo }}</span>
+      </div>
+    </div>
+    <div class="item__meta">
+      <span>Canal: <strong>{{ r.canal|canal_reclamo }}</strong></span>
+      <span>Ingresado: <strong>{{ r.creado|fecha }}</strong></span>
+      <span>Mensajes: <strong>{{ r.mensajes|length }}</strong></span>
+      {% if r.sla_texto %}<span class="sla {{ 'vencido' if r.sla_vencido }}">{{ r.sla_texto }}</span>{% endif %}
+    </div>
+    <div class="acciones"><a class="btn btn-sec btn-sm" href="{{ url_for('reclamos.detalle', reclamo_id=r.id) }}">Ver conversación</a></div>
+  </article>
+{% else %}
+  <div class="vacio">
+    <strong>No tenés reclamos.</strong>Si algo no salió bien, ingresá un reclamo y lo atendemos.
+    <div><a class="btn" href="{{ url_for('reclamos.nuevo') }}">Ingresar un reclamo</a></div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

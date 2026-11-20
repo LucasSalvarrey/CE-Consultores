@@ -1,9 +1,10 @@
-"""Pantallas de clientes: registro (HU-01.1 a HU-07.1) y perfil (HU-04.1)."""
+"""Pantallas de clientes: registro (HU-01.1 a HU-07.1), perfil (HU-04.1) y avisos."""
 from datetime import datetime
 
 from flask import current_app, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import generate_password_hash
 
+from auditoria import registrar
 from auth import cliente_actual, login_requerido
 
 from . import bp
@@ -55,6 +56,12 @@ def registro():
         "creado": datetime.now().isoformat(timespec="seconds"),
     }
 
+    registrar(
+        "Cliente registrado", "cliente", ref=cliente_id,
+        detalle=f"{datos['nombre']} · {store.planes[datos['plan_id']]['nombre']}",
+        actor=f"Cliente ({datos['nombre']})",
+    )
+
     # HU-07.1: la identidad ya está validada, así que se le inicia la sesión y
     # va directo a Mi cuenta, donde ve el mensaje de bienvenida.
     session.clear()  # descarta cualquier sesión anterior
@@ -71,7 +78,8 @@ def registro():
 def mi_cuenta():
     """Datos del cliente con sesión iniciada. Base para HU-04.1 (modificar perfil)."""
     cliente = cliente_actual()
-    plan = _store().planes[cliente["plan_id"]]
+    # Un cliente que dio de baja su plan (HU-13) no tiene plan: `plan` es None.
+    plan = _store().planes.get(cliente["plan_id"])
     return render_template("mi_cuenta.html", cliente=cliente, plan=plan)
 
 
@@ -96,8 +104,24 @@ def editar_perfil():
     if datos["email"] == cliente["email"] and datos["telefono"] == cliente["telefono"]:
         flash("No hiciste ningún cambio.")
     else:
+        cambios = [
+            f"{campo}: {cliente[campo]} → {datos[campo]}"
+            for campo in ("email", "telefono") if cliente[campo] != datos[campo]
+        ]
         # `cliente` es el mismo diccionario que guarda el Store: se actualiza ahí.
         cliente.update(datos)
+        registrar("Perfil modificado", "cliente", ref=cliente["id"], detalle=" · ".join(cambios))
         cliente["modificado"] = datetime.now().isoformat(timespec="seconds")
         flash("Tus datos se actualizaron correctamente.")
     return redirect(url_for("clientes.mi_cuenta"))
+
+@bp.get("/avisos")
+@login_requerido
+def avisos():
+    """Los avisos de NotiSys del cliente. Al abrirlos se marcan como leídos."""
+    notisys = current_app.extensions["notisys"]
+    cliente = cliente_actual()
+    # Copias: así la pantalla todavía muestra cuáles eran nuevos aunque se marquen como leídos.
+    lista = [dict(a) for a in notisys.de_cliente(cliente["id"])]
+    notisys.marcar_leidos(cliente["id"])
+    return render_template("avisos.html", avisos=lista)

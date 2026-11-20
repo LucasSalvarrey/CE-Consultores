@@ -1,18 +1,42 @@
 {% extends "base.html" %}
 {% block titulo %}Mi cuenta · CE Consultores{% endblock %}
 {% block contenido %}
-<div class="tarjeta">
-  <h1>Mi cuenta</h1>
-  <dl>
-    <dt>Nombre</dt><dd>{{ cliente.nombre }}</dd>
-    <dt>DNI</dt><dd>{{ cliente.dni }}</dd>
-    <dt>Email</dt><dd>{{ cliente.email }}</dd>
-    <dt>Teléfono</dt><dd>{{ cliente.telefono }}</dd>
-    <dt>Plan</dt><dd>{{ plan.nombre }}</dd>
-    <dt>Descripción del plan</dt><dd>{{ plan.descripcion or "A definir" }}</dd>
-    <dt>Costo mensual</dt><dd>{% if plan.costo_mensual is not none %}$ {{ plan.costo_mensual|pesos }}{% else %}A definir{% endif %}</dd>
-    <dt>Tiempo de SLA</dt><dd>{% if plan.sla_horas %}{{ plan.sla_horas }} h{% else %}A definir{% endif %}</dd>
-  </dl>
-  <p><a class="editar-perfil" href="{{ url_for('clientes.editar_perfil') }}">Editar mis datos</a></p>
+<div class="pagina-titulo">
+  <div>
+    <h1>Mi cuenta</h1>
+    <p>Tus datos y el plan que tenés contratado.</p>
+  </div>
+  <div class="acciones">
+    <a class="btn btn-sec editar-perfil" href="{{ url_for('clientes.editar_perfil') }}">Editar mis datos</a>
+    <a class="btn" href="{{ url_for('solicitudes.nueva_solicitud') }}">Solicitar un cambio</a>
+  </div>
+</div>
+
+<div class="grilla grilla-2">
+  <div class="tarjeta">
+    <h2>Mis datos</h2>
+    <dl class="datos">
+      <dt>Nombre</dt><dd>{{ cliente.nombre }}</dd>
+      <dt>DNI</dt><dd>{{ cliente.dni }}</dd>
+      <dt>Email</dt><dd>{{ cliente.email }}</dd>
+      <dt>Teléfono</dt><dd>{{ cliente.telefono }}</dd>
+    </dl>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Mi plan</h2>
+    {% if plan %}
+    <dl class="datos">
+      <dt>Plan</dt><dd>{{ plan.nombre }}</dd>
+      <dt>Descripción del plan</dt><dd>{{ plan.descripcion or "A definir" }}</dd>
+      <dt>Costo mensual</dt><dd>{% if plan.costo_mensual is not none %}$ {{ plan.costo_mensual|pesos }}{% else %}A definir{% endif %}</dd>
+      <dt>Tiempo de SLA</dt><dd>{% if plan.sla_horas %}{{ plan.sla_horas }} h{% else %}A definir{% endif %}</dd>
+    </dl>
+    {% else %}
+    <p><strong>No tenés un plan contratado.</strong></p>
+    <p class="nota">Podés pedir el alta de un plan desde una solicitud nueva.</p>
+    <a class="btn" href="{{ url_for('solicitudes.nueva_solicitud') }}">Pedir un plan</a>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

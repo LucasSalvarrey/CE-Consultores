@@ -91,4 +91,4 @@ class RegistroBase(unittest.TestCase):
         self.store = self.app.extensions["store"]
 
     def registrar(self, **cambios):
-        return self.client.post("/registro", data=datos_validos(**cambios))
+        return self.client.post("/registro", data=datos_validos(**cambios))

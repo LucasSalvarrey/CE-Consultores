@@ -4,4 +4,4 @@
 def pesos(valor):
     """Formato argentino: 12500.5 -> '12.500,50'."""
     texto = f"{valor:,.2f}"  # '12,500.50'
-    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
+    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
